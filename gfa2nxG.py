@@ -1,4 +1,4 @@
-# gfa2nxG.py assembly_graph_with_scaffolds.gfa
+# gfa2nxG.py assembly_graph_with_scaffolds.gfa alignment.tsv
 
 import sys
 
@@ -71,7 +71,43 @@ def get_X(G):
     # print(X)
     return X
 
+def set_node_labels(G, tsv):
+    import pandas as pd
+
+    tsv_df = pd.read_csv(tsv, sep="\t", names=['sequence name',
+                                               'start position of alignment on sequence',
+                                               'end position of  alignment on sequence',
+                                               'start position of alignment on the first edge of the Path',
+                                               'end position of alignment on the last edge of the Path',
+                                               'sequence length',
+                                               'path of the alignment',
+                                               'lengths of the alignment on each edge of the Path respectively',
+                                               'sequence of alignment Path'])
+
+    # Split path column into multiple rows
+    new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
+                          index=tsv_df['sequence name']).stack()
+    new_df = new_df.reset_index([0, 'sequence name'])
+    new_df.columns = ['sequence name', 'node']
+
+    # Generate list of sequence names for each node
+    grouped_df = new_df.groupby('node')['sequence name'].apply(list).reset_index()
+
+    grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
+    labels_dict = {}
+    for node in G.nodes:
+        forward_label = grouped_dict[node + '+'] if node + '+' in grouped_dict else []
+        reverse_label = grouped_dict[node + '-'] if node + '-' in grouped_dict else []
+        labels_dict[node] = (forward_label, reverse_label)
+    nx.set_node_attributes(G, labels_dict, name='label')
+    # print(nx.get_node_attributes(G,'label'))
+    return G
+
+# SPAdes output
 gfa = sys.argv[1]
+
+# SPAligner output
+tsv = sys.argv[2]
 
 # Get graph from gfa file
 G = gfa_to_G(gfa)
@@ -84,3 +120,5 @@ A = get_A(G)
 G = set_edge_features(G)
 X = get_X(G)
 
+# Get labels for nodes (segments):
+G = set_node_labels(G, tsv)
