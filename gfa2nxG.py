@@ -3,8 +3,12 @@
 import sys
 
 import scipy as sp
+import pandas as pd
 
 import networkx as nx
+
+from Bio.Seq import reverse_complement
+
 
 def line_to_node(line):
     fields = line.strip().split()
@@ -17,34 +21,14 @@ def line_to_node(line):
 
 def line_to_edge(line):
     fields = line.strip().split()
-    u = fields[1]
-    v = fields[3]
-    e_key = (fields[2], fields[4])
+    # Node name plus node orientation
+    u = fields[1] + fields[2]
+    v = fields[3] + fields[4]
     attr = {'cigar': fields[5]}
-    return u, v, e_key, attr
-
-def set_edge_features(G):
-    from Bio.Seq import reverse_complement
-
-    for n, nbrsdict in G.adjacency():
-        for nbr, edict in nbrsdict.items():
-            for e_key, eattr in edict.items():
-                seq_n = G.nodes[n]['seq']
-                if e_key[0] == '-':
-                    seq_n = reverse_complement(seq_n)
-                seq_nbr = G.nodes[nbr]['seq']
-                if e_key[1] == '-':
-                    seq_nbr = reverse_complement(seq_nbr)
-                overlap = int(G.edges[n, nbr, e_key]['cigar'][:-1])
-                G.edges[n, nbr, e_key]['seq'] = seq_n + seq_nbr[overlap:]
-                G.edges[n, nbr, e_key]['len'] = len(G.edges[n, nbr, e_key]['seq'])
-                G.edges[n, nbr, e_key]['cov'] = G.nodes[n]['KC'] + G.nodes[nbr]['KC'] - 1
-                for nucl in ['A', 'C', 'G', 'T']:
-                    G.edges[n, nbr, e_key][nucl] = G.edges[n, nbr, e_key]['seq'].count(nucl)
-    return G
+    return u, v, attr
 
 def gfa_to_G(gfa):
-    G = nx.MultiDiGraph()
+    G = nx.DiGraph()
     with open(gfa, 'r') as fin:
         for line in fin:
             record_type = line[0]
@@ -52,10 +36,15 @@ def gfa_to_G(gfa):
                 continue
             elif record_type == 'S':
                 name, attr = line_to_node(line)
-                G.add_node(name, **attr)
+                G.add_node(name + '+', seq=attr['seq'], cov=attr['KC'], len=len(attr['seq']),
+                           A=attr['seq'].count('A'), C=attr['seq'].count('C'),
+                           G=attr['seq'].count('G'), T=attr['seq'].count('T'))
+                G.add_node(name + '-', seq=reverse_complement(attr['seq']), cov=attr['KC'], len=len(attr['seq']),
+                           A=attr['seq'].count('T'), C=attr['seq'].count('G'),
+                           G=attr['seq'].count('C'), T=attr['seq'].count('A'))
             elif record_type == 'L':
-                u, v, e_key, attr = line_to_edge(line)
-                G.add_edge(u, v, key=e_key, **attr)
+                u, v, attr = line_to_edge(line)
+                G.add_edge(u, v, **attr)
     return G
 
 def get_A(G):
@@ -65,29 +54,12 @@ def get_A(G):
 
 def get_X(G):
     X = []
-    for n, nbrsdict in G.adjacency():
-        for nbr, edict in nbrsdict.items():
-            for e_key, eattr in edict.items():
-                X.append([eattr[key] for key in ['len', 'cov', 'A', 'C', 'G', 'T']])
+    for node in G.nodes:
+        X.append([G.nodes[node][key] for key in ['len', 'cov', 'A', 'C', 'G', 'T']])
     # print(X)
     return X
 
-def path_to_edges(path):
-    # path is something like 123+;288-,128+
-    edges = []
-    alignments = path.split(';')
-    for alignment in alignments:
-        records = alignment.split(',')
-        for i in range(len(records) - 1):
-            u = records[i][:-1]
-            v = records[i + 1][:-1]
-            e_key = (records[i][-1], records[i + 1][-1])
-            edges.append((u, v, e_key))
-    return edges
-
-def set_edge_labels(G, tsv):
-    import pandas as pd
-
+def spaligner_to_df(tsv):
     tsv_df = pd.read_csv(tsv, sep="\t", names=['sequence name',
                                                'start position of alignment on sequence',
                                                'end position of  alignment on sequence',
@@ -97,31 +69,10 @@ def set_edge_labels(G, tsv):
                                                'path of the alignment',
                                                'lengths of the alignment on each edge of the Path respectively',
                                                'sequence of alignment Path'])
-
-    # Split path column into multiple rows
-    new_df = pd.DataFrame(tsv_df['path of the alignment'].apply(path_to_edges).tolist(), index=tsv_df['sequence name']).stack()
-    new_df = new_df.reset_index([0, 'sequence name'])
-    new_df.columns = ['labels', 'edge']
-
-    # Generate list of sequence names for each edge
-    grouped_df = new_df.groupby('edge')['labels'].apply(list).reset_index()
-
-    nx.set_edge_attributes(G, grouped_df.set_index('edge')['labels'].to_dict(), name='labels')
-    # print(nx.get_edge_attributes(G,'labels'))
-    return G
+    return tsv_df
 
 def set_node_labels(G, tsv):
-    import pandas as pd
-
-    tsv_df = pd.read_csv(tsv, sep="\t", names=['sequence name',
-                                               'start position of alignment on sequence',
-                                               'end position of  alignment on sequence',
-                                               'start position of alignment on the first edge of the Path',
-                                               'end position of alignment on the last edge of the Path',
-                                               'sequence length',
-                                               'path of the alignment',
-                                               'lengths of the alignment on each edge of the Path respectively',
-                                               'sequence of alignment Path'])
+    tsv_df = spaligner_to_df(tsv)
 
     # Split path column into multiple rows
     new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
@@ -133,12 +84,7 @@ def set_node_labels(G, tsv):
     grouped_df = new_df.groupby('node')['sequence name'].apply(list).reset_index()
 
     grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
-    labels_dict = {}
-    for node in G.nodes:
-        forward_label = grouped_dict[node + '+'] if node + '+' in grouped_dict else []
-        reverse_label = grouped_dict[node + '-'] if node + '-' in grouped_dict else []
-        labels_dict[node] = (forward_label, reverse_label)
-    nx.set_node_attributes(G, labels_dict, name='label')
+    nx.set_node_attributes(G, grouped_dict, name='label')
     # print(nx.get_node_attributes(G,'label'))
     return G
 
@@ -151,13 +97,11 @@ tsv = sys.argv[2]
 # Get graph from gfa file
 G = gfa_to_G(gfa)
 
-# Get something like Adjacency matrix
-# The weights are summed for MultiDiGraph parallel edges
+# Get Adjacency matrix
 A = get_A(G)
 
 # Get feature matrix
-G = set_edge_features(G)
 X = get_X(G)
 
-# Get labels for edges
-G = set_edge_labels(G, tsv)
+# Set labels for nodes
+G = set_node_labels(G, tsv)
