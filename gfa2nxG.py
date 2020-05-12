@@ -19,27 +19,28 @@ def line_to_edge(line):
     fields = line.strip().split()
     u = fields[1]
     v = fields[3]
-    attr = {'FromOrient': fields[2], 'ToOrient': fields[4], 'cigar': fields[5]}
-    return u, v, attr
+    key = (fields[2], fields[4])
+    attr = {'cigar': fields[5]}
+    return u, v, key, attr
 
 def set_edge_features(G):
     from Bio.Seq import reverse_complement
 
     for n, nbrsdict in G.adjacency():
         for nbr, edict in nbrsdict.items():
-            for e, eattr in edict.items():
+            for e_key, eattr in edict.items():
                 seq_n = G.nodes[n]['seq']
-                if G.edges[n, nbr, e]['FromOrient'] == '-':
+                if e_key[0] == '-':
                     seq_n = reverse_complement(seq_n)
                 seq_nbr = G.nodes[nbr]['seq']
-                if G.edges[n, nbr, e]['ToOrient'] == '-':
+                if e_key[1] == '-':
                     seq_nbr = reverse_complement(seq_nbr)
-                overlap = int(G.edges[n, nbr, e]['cigar'][:-1])
-                G.edges[n, nbr, e]['seq'] = seq_n + seq_nbr[overlap:]
-                G.edges[n, nbr, e]['len'] = len(G.edges[n, nbr, e]['seq'])
-                G.edges[n, nbr, e]['cov'] = G.nodes[n]['KC'] + G.nodes[nbr]['KC'] - 1
+                overlap = int(G.edges[n, nbr, e_key]['cigar'][:-1])
+                G.edges[n, nbr, e_key]['seq'] = seq_n + seq_nbr[overlap:]
+                G.edges[n, nbr, e_key]['len'] = len(G.edges[n, nbr, e_key]['seq'])
+                G.edges[n, nbr, e_key]['cov'] = G.nodes[n]['KC'] + G.nodes[nbr]['KC'] - 1
                 for nucl in ['A', 'C', 'G', 'T']:
-                    G.edges[n, nbr, e][nucl] = G.edges[n, nbr, e]['seq'].count(nucl)
+                    G.edges[n, nbr, e_key][nucl] = G.edges[n, nbr, e_key]['seq'].count(nucl)
     return G
 
 def gfa_to_G(gfa):
@@ -53,8 +54,8 @@ def gfa_to_G(gfa):
                 name, attr = line_to_node(line)
                 G.add_node(name, **attr)
             elif record_type == 'L':
-                u, v, attr = line_to_edge(line)
-                G.add_edge(u, v, **attr)
+                u, v, key, attr = line_to_edge(line)
+                G.add_edge(u, v, key=key, **attr)
     return G
 
 def get_A(G):
@@ -66,7 +67,7 @@ def get_X(G):
     X = []
     for n, nbrsdict in G.adjacency():
         for nbr, edict in nbrsdict.items():
-            for e, eattr in edict.items():
+            for e_key, eattr in edict.items():
                 X.append([eattr[key] for key in ['len', 'cov', 'A', 'C', 'G', 'T']])
     # print(X)
     return X
@@ -90,9 +91,9 @@ def set_node_labels(G, tsv):
     new_df = new_df.reset_index([0, 'sequence name'])
     new_df.columns = ['sequence name', 'node']
 
-    # Generate list of sequence names for each node
+    # Generate list of sequence names for each node with orientation
     grouped_df = new_df.groupby('node')['sequence name'].apply(list).reset_index()
-
+    
     grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
     labels_dict = {}
     for node in G.nodes:
