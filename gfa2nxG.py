@@ -19,9 +19,9 @@ def line_to_edge(line):
     fields = line.strip().split()
     u = fields[1]
     v = fields[3]
-    key = (fields[2], fields[4])
+    e_key = (fields[2], fields[4])
     attr = {'cigar': fields[5]}
-    return u, v, key, attr
+    return u, v, e_key, attr
 
 def set_edge_features(G):
     from Bio.Seq import reverse_complement
@@ -54,8 +54,8 @@ def gfa_to_G(gfa):
                 name, attr = line_to_node(line)
                 G.add_node(name, **attr)
             elif record_type == 'L':
-                u, v, key, attr = line_to_edge(line)
-                G.add_edge(u, v, key=key, **attr)
+                u, v, e_key, attr = line_to_edge(line)
+                G.add_edge(u, v, key=e_key, **attr)
     return G
 
 def get_A(G):
@@ -71,6 +71,44 @@ def get_X(G):
                 X.append([eattr[key] for key in ['len', 'cov', 'A', 'C', 'G', 'T']])
     # print(X)
     return X
+
+def path_to_edges(path):
+    # path is something like 123+;288-,128+
+    edges = []
+    alignments = path.split(';')
+    for alignment in alignments:
+        records = alignment.split(',')
+        for i in range(len(records) - 1):
+            u = records[i][:-1]
+            v = records[i + 1][:-1]
+            e_key = (records[i][-1], records[i + 1][-1])
+            edges.append((u, v, e_key))
+    return edges
+
+def set_edge_labels(G, tsv):
+    import pandas as pd
+
+    tsv_df = pd.read_csv(tsv, sep="\t", names=['sequence name',
+                                               'start position of alignment on sequence',
+                                               'end position of  alignment on sequence',
+                                               'start position of alignment on the first edge of the Path',
+                                               'end position of alignment on the last edge of the Path',
+                                               'sequence length',
+                                               'path of the alignment',
+                                               'lengths of the alignment on each edge of the Path respectively',
+                                               'sequence of alignment Path'])
+
+    # Split path column into multiple rows
+    new_df = pd.DataFrame(tsv_df['path of the alignment'].apply(path_to_edges).tolist(), index=tsv_df['sequence name']).stack()
+    new_df = new_df.reset_index([0, 'sequence name'])
+    new_df.columns = ['labels', 'edge']
+
+    # Generate list of sequence names for each edge
+    grouped_df = new_df.groupby('edge')['labels'].apply(list).reset_index()
+
+    nx.set_edge_attributes(G, grouped_df.set_index('edge')['labels'].to_dict(), name='labels')
+    # print(nx.get_edge_attributes(G,'labels'))
+    return G
 
 def set_node_labels(G, tsv):
     import pandas as pd
@@ -93,7 +131,7 @@ def set_node_labels(G, tsv):
 
     # Generate list of sequence names for each node with orientation
     grouped_df = new_df.groupby('node')['sequence name'].apply(list).reset_index()
-    
+
     grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
     labels_dict = {}
     for node in G.nodes:
@@ -121,5 +159,5 @@ A = get_A(G)
 G = set_edge_features(G)
 X = get_X(G)
 
-# Get labels for nodes (segments):
-G = set_node_labels(G, tsv)
+# Get labels for edges
+G = set_edge_labels(G, tsv)
