@@ -36,12 +36,22 @@ def gfa_to_G(gfa):
                 continue
             elif record_type == 'S':
                 name, attr = line_to_node(line)
-                G.add_node(name + '+', seq=attr['seq'], cov=attr['KC'], len=len(attr['seq']),
-                           A=attr['seq'].count('A'), C=attr['seq'].count('C'),
-                           G=attr['seq'].count('G'), T=attr['seq'].count('T'))
-                G.add_node(name + '-', seq=reverse_complement(attr['seq']), cov=attr['KC'], len=len(attr['seq']),
-                           A=attr['seq'].count('T'), C=attr['seq'].count('G'),
-                           G=attr['seq'].count('C'), T=attr['seq'].count('A'))
+                G.add_node(name + '+',
+                           seq=attr['seq'],
+                           cov=attr['KC'] * 1.0 / len(attr['seq']),
+                           len=len(attr['seq']),
+                           A=attr['seq'].count('A') * 1.0 / len(attr['seq']),
+                           C=attr['seq'].count('C') * 1.0 / len(attr['seq']),
+                           G=attr['seq'].count('G') * 1.0 / len(attr['seq']),
+                           T=attr['seq'].count('T') * 1.0 / len(attr['seq']))
+                G.add_node(name + '-',
+                           seq=reverse_complement(attr['seq']),
+                           cov=attr['KC'] * 1.0 / len(attr['seq']),
+                           len=len(attr['seq']),
+                           A=attr['seq'].count('T') * 1.0 / len(attr['seq']),
+                           C=attr['seq'].count('G') * 1.0 / len(attr['seq']),
+                           G=attr['seq'].count('C') * 1.0 / len(attr['seq']),
+                           T=attr['seq'].count('A') * 1.0 / len(attr['seq']))
             elif record_type == 'L':
                 u, v, attr = line_to_edge(line)
                 G.add_edge(u, v, **attr)
@@ -58,7 +68,7 @@ def get_X(G):
     print('features: ', features)
     for node in G.nodes:
         X.append([G.nodes[node][key] for key in features])
-        print(node, X[-1])
+        print(node, X[-1][0], ' '.join(["%.2f" % e for e in X[-1][1:]]))
     return X
 
 def spaligner_to_df(tsv):
