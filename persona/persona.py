@@ -48,11 +48,10 @@ Where ${graph} is the path to a text file containing the graph and
 ${clustering_output} is the path to the output clustering.
 
 The graph input format is a text file containing one edge per row represented
-as its pair of node ids. The graph is supposed to be undirected.
+as its pair of node ids. The graph is supposed to be directed.
 For instance the file:
 1 2
 2 3
-represents the triangle 1, 2, 3.
 
 The output clustering format is a text file containing for each row one
 (overlapping) cluster represented as the space-separted list of node ids in the
@@ -89,12 +88,11 @@ flags.DEFINE_string(
     'input_graph', None,
     'The input graph path as a text file containing one edge per row, as the '
     'two node ids u v of the edge separated by a whitespace. The graph is '
-    'assumed to be undirected. For example the file:\n1 2\n2 3\n represents '
-    'the triangle 1 2 3')
+    'assumed to be directed. For example the file:\n1 2\n2 3\n')
 
 flags.DEFINE_string(
     'output_clustering', None,
-    'output path for the overallping clustering. The clustering is output as a '
+    'output path for the overlapping clustering. The clustering is output as a '
     'text file where each row is a cluster, represented as the space-separated '
     'list of its node ids.')
 
@@ -125,13 +123,27 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 
 
+def node_neighbor_to_persona_id(node, egonet, persona_id_counter, clustering_fn,
+                                node_neighbor_to_persona_id_map, persona_to_original_mapping):
+    partitioning = clustering_fn(egonet)  # Clustering the egonet.
+    seen_neighbors = set()
+    # Process each of the egonet's local clusters.
+    for partition in partitioning:
+        persona_id = next(persona_id_counter)
+        persona_to_original_mapping[persona_id] = node
+        for neighbor in partition:
+            node_neighbor_to_persona_id_map[node][neighbor] = persona_id
+            assert neighbor not in seen_neighbors
+            seen_neighbors.add(neighbor)
+
+
 def CreatePersonaGraph(graph,
-                       clustering_fn=label_prop.label_propagation_communities,
+                       clustering_fn=modularity.greedy_modularity_communities,
                        persona_start_id=0):
   """The function creates the persona graph.
 
   Args:
-    graph: Undirected graph represented as a dictionary of lists that maps each
+    graph: Directed graph represented as a dictionary of lists that maps each
       node id its list of neighbor ids;
     clustering_fn: A non-overlapping clustering algorithm function that takes in
       input a nx.Graph and outputs the a clustering. The output format is a list
@@ -147,38 +159,41 @@ def CreatePersonaGraph(graph,
     graph.The persona graph as nx.Graph, and the mapping of persona nodes to
     original node ids.
   """
-  egonets = CreateEgonets(graph)
-  node_neighbor_persona_id_map = collections.defaultdict(dict)
+  in_egonets = CreateEgonets(graph, direction='in')
+  out_egonets = CreateEgonets(graph, direction='out')
+
   persona_graph = nx.Graph()
   persona_to_original_mapping = dict()
+  successor_persona_id_map = collections.defaultdict(dict)
+  predecessor_persona_id_map = collections.defaultdict(dict)
 
   # Next id to allacate in persona graph.
   persona_id_counter = itertools.count(start=persona_start_id)
 
-  for u, egonet in egonets.items():
-    partitioning = clustering_fn(egonet)  # Clustering the egonet.
-    seen_neighbors = set()  # Process each of the egonet's local clusters.
-    for partition in partitioning:
-      persona_id = next(persona_id_counter)
-      persona_to_original_mapping[persona_id] = u
-      for v in partition:
-        node_neighbor_persona_id_map[u][v] = persona_id
-        assert v not in seen_neighbors
-        seen_neighbors.add(v)
+  for node in graph.nodes():
+      # Separate clustering the egonet in forward direction (for output node edges)
+      node_neighbor_to_persona_id(node, out_egonets[node], persona_id_counter, clustering_fn,
+                                  successor_persona_id_map, persona_to_original_mapping)
+      # And separate clustering for input node edges (backward direction)
+      node_neighbor_to_persona_id(node, in_egonets[node], persona_id_counter, clustering_fn,
+                                  predecessor_persona_id_map, persona_to_original_mapping)
+
   for u in graph.nodes():  # Process mapping to create persona graph.
-    for v in graph.neighbors(u):
+    for v in graph.successors(u):
       if v == u:
         continue
-      assert v in node_neighbor_persona_id_map[u]
-      u_p = node_neighbor_persona_id_map[u][v]
-      assert u in node_neighbor_persona_id_map[v]
-      v_p = node_neighbor_persona_id_map[v][u]
+      # Since v is successor for u...
+      assert v in successor_persona_id_map[u]
+      u_p = successor_persona_id_map[u][v]
+      # ... u is predecessor for v
+      assert u in predecessor_persona_id_map[v]
+      v_p = predecessor_persona_id_map[v][u]
       persona_graph.add_edge(u_p, v_p)
 
   return persona_graph, persona_to_original_mapping
 
 
-def CreateEgonets(graph):
+def CreateEgonets(graph, direction):
   """Given a graph, construct all the egonets of the graph.
 
   Args:
@@ -188,52 +203,27 @@ def CreateEgonets(graph):
     A dict mapping each node id to an instance of nx.Graph which represents the
     egonet for that node.
   """
+  assert direction in ['in', 'out']
+  if direction == 'out':
+      nbrs = graph.successors
+  else:
+      nbrs = graph.predecessors
 
-  # This is used to not replicate the work for nodes that have been already
-  # analyzed..
-  completed_nodes = set()
   ego_egonet_map = collections.defaultdict(nx.Graph)
 
-  # To reducing the running time the nodes are processed in increasing order of
-  # degree.
-  degrees_pq = HeapPriorityQueue()
-  curr_degree = {}
-  for node in graph.nodes:
-    degrees_pq.add(node, -graph.degree[node])
-    curr_degree[node] = graph.degree[node]
-
-  # Ceating a set of the edges for fast membership testing.
   edge_set = set(graph.edges)
 
-  while degrees_pq:
-    node = degrees_pq.pop()
-    # Update the priority queue decreasing the degree of the neighbor nodes.
-    for neighbor in graph.neighbors(node):
+  for node in graph.nodes:
+    for neighbor in nbrs(node):
       if neighbor == node:
         continue
-      ego_egonet_map[node].add_node(
-          neighbor)  # even if it is not part of a triangle it is there.
-      # We decrease the degree of the nodes still not processed.
-      if neighbor not in completed_nodes:
-        curr_degree[neighbor] -= 1
-        degrees_pq.remove(neighbor)
-        degrees_pq.add(neighbor, -curr_degree[neighbor])
+      ego_egonet_map[node].add_node(neighbor)
 
-    # Construct egonet of u by enumerating all triangles to which u belong
-    # because each edge in a triangle is an edge in the egonets of the triangle
-    # vertices  and vice versa.
-    not_removed = []
-    for neighbor in graph.neighbors(node):
-      if neighbor not in completed_nodes:
-        not_removed.append(neighbor)
-    for pos_u, u in enumerate(not_removed):
-      for v  in not_removed[pos_u+1:]:
-        if (u, v) in edge_set or (v, u) in edge_set:
+    for u in nbrs(node):
+      for v in nbrs(node):
+        if (u, v) in edge_set:
           ego_egonet_map[node].add_edge(u, v)
-          ego_egonet_map[u].add_edge(node, v)
-          ego_egonet_map[v].add_edge(u, node)
 
-    completed_nodes.add(node)
   return ego_egonet_map
 
 
@@ -253,8 +243,7 @@ def PersonaOverlappingClustering(graph, local_clustering_fn,
     id mapping (dictionary of int to string) .
   """
 
-  persona_graph, persona_id_mapping = CreatePersonaGraph(
-      graph, local_clustering_fn)
+  persona_graph, persona_id_mapping = CreatePersonaGraph(graph, local_clustering_fn)
   non_overlapping_clustering = global_clustering_fn(persona_graph)
   overlapping_clustering = set()
   for cluster in non_overlapping_clustering:

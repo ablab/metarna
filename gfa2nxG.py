@@ -54,9 +54,11 @@ def get_A(G):
 
 def get_X(G):
     X = []
+    features = ['len', 'cov', 'A', 'C', 'G', 'T']
+    print('features: ', features)
     for node in G.nodes:
-        X.append([G.nodes[node][key] for key in ['len', 'cov', 'A', 'C', 'G', 'T']])
-    # print(X)
+        X.append([G.nodes[node][key] for key in features])
+        print(node, X[-1])
     return X
 
 def spaligner_to_df(tsv):
@@ -88,20 +90,25 @@ def set_node_labels(G, tsv):
     # print(nx.get_node_attributes(G,'label'))
     return G
 
-# SPAdes output
-gfa = sys.argv[1]
+def main():
+    # SPAdes output
+    gfa = sys.argv[1]
 
-# SPAligner output
-tsv = sys.argv[2]
+    # SPAligner output
+    tsv = sys.argv[2]
 
-# Get graph from gfa file
-G = gfa_to_G(gfa)
+    # Get graph from gfa file
+    G = gfa_to_G(gfa)
 
-# Get Adjacency matrix
-A = get_A(G)
+    # Get Adjacency matrix
+    A = get_A(G)
 
-# Get feature matrix
-X = get_X(G)
+    # Get feature matrix
+    X = get_X(G)
 
-# Set labels for nodes
-G = set_node_labels(G, tsv)
+    # Set labels for nodes
+    G = set_node_labels(G, tsv)
+
+
+if __name__ == '__main__':
+    main()
