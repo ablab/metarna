@@ -184,11 +184,11 @@ def CreatePersonaGraph(graph,
         continue
       # Since v is successor for u...
       assert v in successor_persona_id_map[u]
-      u_p = successor_persona_id_map[u][v]
+      successor = successor_persona_id_map[u][v]
       # ... u is predecessor for v
       assert u in predecessor_persona_id_map[v]
-      v_p = predecessor_persona_id_map[v][u]
-      persona_graph.add_edge(u_p, v_p)
+      predecessor = predecessor_persona_id_map[v][u]
+      persona_graph.add_edge(successor, predecessor)
 
   return persona_graph, persona_to_original_mapping
 
