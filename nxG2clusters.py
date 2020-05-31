@@ -10,12 +10,13 @@ from persona.persona import _CLUSTERING_FN
 
 import gfa2nxG
 
-
-local_clustering_fn = _CLUSTERING_FN['label_prop']
-global_clustering_fn = _CLUSTERING_FN['label_prop']
+local_clustering_fn = _CLUSTERING_FN['weakly_connected_components']
+global_clustering_fn = _CLUSTERING_FN['weakly_connected_components']
 
 gfa = sys.argv[1]
 G = gfa2nxG.gfa_to_G(gfa)
+
+outdir = sys.argv[2]
 
 # G for testing
 # G = nx.DiGraph()
@@ -34,7 +35,6 @@ A = gfa2nxG.get_A(G_tst)
 clustering, persona_graph, persona_id_mapping = \
     PersonaOverlappingClustering(G_tst, local_clustering_fn, global_clustering_fn, 0)
 
-outdir = sys.argv[2]
 with open(os.path.join(outdir, 'clustering.tsv'), 'w') as outfile:
     for cluster in clustering:
         outfile.write(' '.join([str(x) for x in cluster]) + '\n')

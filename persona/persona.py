@@ -81,7 +81,8 @@ import networkx.algorithms.components.connected as components
 _CLUSTERING_FN = {
     'label_prop': label_prop.label_propagation_communities,
     'modularity': modularity.greedy_modularity_communities,
-    'connected_components': components.connected_components
+    'connected_components': components.connected_components,
+    'weakly_connected_components': nx.algorithms.components.weakly_connected_components
 }
 
 flags.DEFINE_string(
@@ -137,9 +138,7 @@ def node_neighbor_to_persona_id(node, egonet, persona_id_counter, clustering_fn,
             seen_neighbors.add(neighbor)
 
 
-def CreatePersonaGraph(graph,
-                       clustering_fn=modularity.greedy_modularity_communities,
-                       persona_start_id=0):
+def CreatePersonaGraph(graph, clustering_fn, persona_start_id=0):
   """The function creates the persona graph.
 
   Args:
@@ -162,7 +161,7 @@ def CreatePersonaGraph(graph,
   in_egonets = CreateEgonets(graph, direction='in')
   out_egonets = CreateEgonets(graph, direction='out')
 
-  persona_graph = nx.Graph()
+  persona_graph = nx.DiGraph()
   persona_to_original_mapping = dict()
   successor_persona_id_map = collections.defaultdict(dict)
   predecessor_persona_id_map = collections.defaultdict(dict)
@@ -209,7 +208,7 @@ def CreateEgonets(graph, direction):
   else:
       nbrs = graph.predecessors
 
-  ego_egonet_map = collections.defaultdict(nx.Graph)
+  ego_egonet_map = collections.defaultdict(nx.DiGraph)
 
   edge_set = set(graph.edges)
 

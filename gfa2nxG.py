@@ -59,7 +59,7 @@ def gfa_to_G(gfa):
 
 def get_A(G):
     A = nx.adjacency_matrix(G)
-    # print(A.todense())
+    print(A.todense())
     return A
 
 def get_X(G):

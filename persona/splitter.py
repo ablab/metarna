@@ -43,11 +43,7 @@ Where ${graph} is the path to a text file containing the graph and
 ${embedding_output} is the path to the output embedding.
 
 The graph input format is a text file containing one edge per row represented
-as its pair of node ids. The graph is supposed to be undirected.
-For instance the file:
-1 2
-2 3
-represents the triangle 1, 2, 3.
+as its pair of node ids.
 
 The output embedding format is a text file containing for each row one
 (overlapping) cluster represented as the space-separted list of node ids in the
@@ -115,7 +111,7 @@ def Splitter(graph,
   multiple senses.
 
   Args:
-    graph: Undirected graph represented as a dictionary of lists that maps each
+    graph: Graph represented as a dictionary of lists that maps each
       node id its list of neighbor ids;
     embedding_dim: The dimensionality of the embedding to use.
     walk_length: The length of the random walks to generate from each node.
