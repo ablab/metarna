@@ -7,6 +7,7 @@ import networkx as nx
 
 from persona.persona import PersonaOverlappingClustering
 from persona.persona import _CLUSTERING_FN
+from persona.splitter import Splitter
 
 import gfa2nxG
 
@@ -32,7 +33,7 @@ G_tst.add_edges_from([('36185+', '278990+'), ('283130+', '352975-'), ('36185+', 
 X = gfa2nxG.get_X(G_tst)
 A = gfa2nxG.get_A(G_tst)
 
-clustering, persona_graph, persona_id_mapping = \
+'''clustering, persona_graph, persona_id_mapping = \
     PersonaOverlappingClustering(G_tst, local_clustering_fn, global_clustering_fn, 0)
 
 with open(os.path.join(outdir, 'clustering.tsv'), 'w') as outfile:
@@ -43,4 +44,21 @@ nx.write_edgelist(persona_graph, os.path.join(outdir, 'persona_graph.tsv'))
 
 with open(os.path.join(outdir, 'persona_graph_mapping.tsv'), 'w') as outfile:
     for persona_node, original_node in persona_id_mapping.items():
+        outfile.write('{} {}\n'.format(persona_node, original_node))'''
+
+print('Running splitter...')
+splitter = Splitter(G_tst, embedding_dim=128, walk_length=10, num_walks_node=40,
+                    constraint_learning_rate_scaling_factor=0.1, iterations=10,
+                    seed=1, local_clustering_fn=local_clustering_fn)
+
+# output embeddings
+splitter['persona_model'].save_word2vec_format(open(os.path.join(outdir, 'persona_embedding.tsv'), 'wb'))
+
+# optional output
+splitter['regular_model'].save_word2vec_format(open(os.path.join(outdir, 'embedding_prior.tsv'), 'wb'))
+
+nx.write_edgelist(splitter['persona_graph'], os.path.join(outdir, 'persona_graph.tsv'))
+
+with open(os.path.join(outdir, 'persona_graph_mapping.tsv'), 'w') as outfile:
+    for persona_node, original_node in splitter['persona_id_mapping'].items():
         outfile.write('{} {}\n'.format(persona_node, original_node))
