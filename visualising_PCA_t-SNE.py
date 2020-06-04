@@ -22,19 +22,24 @@ import seaborn as sns
 
 X = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skipfooter=10)
 
-pgm = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['regular'])
+persona_to_regular = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['regular'])
 
 outdir = sys.argv[3]
 
-pca = PCA(n_components=3)
-pca_result = pca.fit_transform(X.values)
+def do_PCA(X):
+    pca = PCA(n_components=3)
+    pca_result = pca.fit_transform(X.values)
 
-pca_df = pd.DataFrame({'pca_1': pca_result[:, 0],
-                       'pca_2': pca_result[:, 1],
-                       'pca_3': pca_result[:, 2]}, index=X.index)
-print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
+    pca_df = pd.DataFrame({'pca_1': pca_result[:, 0],
+                           'pca_2': pca_result[:, 1],
+                           'pca_3': pca_result[:, 2]},
+                          index=X.index)
+    print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
+    return pca_df
 
-df = pd.concat([X, pca_df, pgm], axis=1)
+pca_df = do_PCA(X)
+
+df = pd.concat([X, pca_df, persona_to_regular], axis=1)
 
 # if clusters overlap then 0 else cluster number
 # path1 930004-,278546-,36185+,278990+,283130+,352975-,37703+
@@ -45,7 +50,8 @@ clusters_map = {'930004-': '0', '36185+': '0', '283130+': '0', '352975-': '0', '
                 '2326645-': '-1'}
 df['cluster'] = df['regular'].map(clusters_map)
 
-def plot_pca_2d():
+# PCA
+def plot_pca_2d(df):
     plt.figure(figsize=(16, 10))
     pca_plt = sns.scatterplot(
         x="pca_1", y="pca_2",
@@ -57,7 +63,7 @@ def plot_pca_2d():
     )
     pca_plt.figure.savefig(os.path.join(outdir, "pca_2d.png"))
 
-def plot_pca_3d():
+def plot_pca_3d(df):
     ax = plt.figure(figsize=(16, 10)).gca(projection='3d')
     ax.scatter(
         xs=df["pca_1"],
@@ -71,5 +77,11 @@ def plot_pca_3d():
     ax.set_zlabel('pca-three')
     plt.savefig(os.path.join(outdir, "pca_3d.png"))
 
-plot_pca_2d()
-plot_pca_3d()
+plot_pca_2d(df)
+plot_pca_3d(df)
+
+def get_subset(X, df, N=10000):
+    X_subset = X.sample(min(df.shape[0], N))
+    df_subset = df.loc[X_subset.index, :]
+
+    return X_subset, df_subset
