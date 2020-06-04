@@ -105,4 +105,18 @@ def do_t_SNE(X):
 X_subset, df_subset = get_subset(X, df, 10000)
 # pca_df = do_PCA(X_subset)
 tsne_df = do_t_SNE(X_subset)
-df = pd.concat([df, tsne_df], axis=1)
+df_subset = pd.concat([df_subset, tsne_df], axis=1)
+
+def plot_t_SNE(df):
+    plt.figure(figsize=(16, 10))
+    t_SNE_plt = sns.scatterplot(
+        x="tsne_1", y="tsne_2",
+        hue="cluster",
+        palette=sns.color_palette("hls", 4),
+        data=df,
+        legend="full",
+        # alpha=0.3
+    )
+    t_SNE_plt.figure.savefig(os.path.join(outdir, "t-SNE.png"))
+
+plot_t_SNE(df_subset)
