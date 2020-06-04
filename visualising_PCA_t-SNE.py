@@ -19,8 +19,12 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import seaborn as sns
 
+
 X = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skipfooter=10)
+
 pgm = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['regular'])
+
+outdir = sys.argv[3]
 
 pca = PCA(n_components=3)
 pca_result = pca.fit_transform(X.values)
@@ -41,13 +45,31 @@ clusters_map = {'930004-': '0', '36185+': '0', '283130+': '0', '352975-': '0', '
                 '2326645-': '-1'}
 df['cluster'] = df['regular'].map(clusters_map)
 
-plt.figure(figsize=(16,10))
-pca_plt = sns.scatterplot(
-    x="pca_1", y="pca_2",
-    hue="cluster",
-    palette=sns.color_palette("hls", 4),
-    data=df,
-    legend="full",
-    # alpha=0.3
-)
-pca_plt.figure.savefig(os.path.join(sys.argv[3], "pca.png"))
+def plot_pca_2d():
+    plt.figure(figsize=(16, 10))
+    pca_plt = sns.scatterplot(
+        x="pca_1", y="pca_2",
+        hue="cluster",
+        palette=sns.color_palette("hls", 4),
+        data=df,
+        legend="full",
+        # alpha=0.3
+    )
+    pca_plt.figure.savefig(os.path.join(outdir, "pca_2d.png"))
+
+def plot_pca_3d():
+    ax = plt.figure(figsize=(16, 10)).gca(projection='3d')
+    ax.scatter(
+        xs=df["pca_1"],
+        ys=df["pca_2"],
+        zs=df["pca_3"],
+        c=df["cluster"],
+        cmap='tab10'
+    )
+    ax.set_xlabel('pca-one')
+    ax.set_ylabel('pca-two')
+    ax.set_zlabel('pca-three')
+    plt.savefig(os.path.join(outdir, "pca_3d.png"))
+
+plot_pca_2d()
+plot_pca_3d()
