@@ -1,6 +1,6 @@
-# gfa2nxG.py assembly_graph_with_scaffolds.gfa alignment.tsv
+# gfa2nxG.py assembly_graph_with_scaffolds.gfa alignment.tsv outdir
 
-import sys
+import sys, os
 
 import scipy as sp
 import pandas as pd
@@ -9,6 +9,7 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
+outdir = sys.argv[3]
 
 def line_to_node(line):
     fields = line.strip().split()
@@ -97,7 +98,13 @@ def set_node_labels(G, tsv):
 
     grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
     nx.set_node_attributes(G, grouped_dict, name='label')
+
     # print(nx.get_node_attributes(G,'label'))
+
+    with open(os.path.join(outdir, 'node_to_db.tsv'), 'w') as fin:
+        for node, transcripts in grouped_dict.items():
+            fin.write(node + ' ' + ' '.join(transcripts) + '\n')
+
     return G
 
 def main():
