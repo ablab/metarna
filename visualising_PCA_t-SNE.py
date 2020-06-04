@@ -85,3 +85,24 @@ def get_subset(X, df, N=10000):
     df_subset = df.loc[X_subset.index, :]
 
     return X_subset, df_subset
+
+# Since t-SNE scales quadratically in the number of objects N,
+# its applicability is limited to data sets with only a few thousand input objects.
+def do_t_SNE(X):
+    time_start = time.time()
+
+    tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
+    tsne_result = tsne.fit_transform(X.values)
+
+    print('t-SNE done! Time elapsed: {} seconds'.format(time.time() - time_start))
+
+    tsne_df = pd.DataFrame({'tsne_1': tsne_result[:, 0],
+                            'tsne_2': tsne_result[:, 1]},
+                           index=X.index)
+    return tsne_df
+
+
+X_subset, df_subset = get_subset(X, df, 10000)
+# pca_df = do_PCA(X_subset)
+tsne_df = do_t_SNE(X_subset)
+df = pd.concat([df, tsne_df], axis=1)
