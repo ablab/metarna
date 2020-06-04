@@ -9,7 +9,6 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
-outdir = sys.argv[3]
 
 def line_to_node(line):
     fields = line.strip().split()
@@ -84,7 +83,7 @@ def spaligner_to_df(tsv):
                                                'sequence of alignment Path'])
     return tsv_df
 
-def set_node_labels(G, tsv):
+def set_node_labels(G, tsv, outdir):
     tsv_df = spaligner_to_df(tsv)
 
     # Split path column into multiple rows
@@ -93,8 +92,8 @@ def set_node_labels(G, tsv):
     new_df = new_df.reset_index([0, 'sequence name'])
     new_df.columns = ['sequence name', 'node']
 
-    # Generate list of sequence names for each node with orientation
-    grouped_df = new_df.groupby('node')['sequence name'].apply(list).reset_index()
+    # Generate set of sequence names for each node with orientation
+    grouped_df = new_df.groupby('node')['sequence name'].apply(set).reset_index()
 
     grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
     nx.set_node_attributes(G, grouped_dict, name='label')
@@ -103,7 +102,7 @@ def set_node_labels(G, tsv):
 
     with open(os.path.join(outdir, 'node_to_db.tsv'), 'w') as fin:
         for node, transcripts in grouped_dict.items():
-            fin.write(node + ' ' + ' '.join(transcripts) + '\n')
+            fin.write(node + '\t' + ' '.join(transcripts) + '\n')
 
     return G
 
@@ -113,6 +112,8 @@ def main():
 
     # SPAligner output
     tsv = sys.argv[2]
+
+    outdir = sys.argv[3]
 
     # Get graph from gfa file
     G = gfa_to_G(gfa)
@@ -124,7 +125,7 @@ def main():
     X = get_X(G)
 
     # Set labels for nodes
-    G = set_node_labels(G, tsv)
+    G = set_node_labels(G, tsv, outdir)
 
 
 if __name__ == '__main__':

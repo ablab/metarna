@@ -1,4 +1,4 @@
-# visualising_PCA_t-SNE.py persona_embedding.tsv persona_graph_mapping.tsv outdir
+# visualising_PCA_t-SNE.py persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv outdir
 
 from __future__ import print_function
 
@@ -24,7 +24,7 @@ X = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skip
 
 persona_to_regular = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['regular'])
 
-outdir = sys.argv[3]
+outdir = sys.argv[4]
 
 def do_PCA(X):
     pca = PCA(n_components=3)
@@ -44,11 +44,17 @@ df = pd.concat([X, pca_df, persona_to_regular], axis=1)
 # if clusters overlap then 0 else cluster number
 # path1 930004-,278546-,36185+,278990+,283130+,352975-,37703+
 # path2 930004-,239212-,36185+,365256-,283130+,352975-,37703+
-clusters_map = {'930004-': '0', '36185+': '0', '283130+': '0', '352975-': '0', '37703+': '0',
-                '278546-': '1', '278990+': '1',
-                '239212-': '2', '365256-': '2',
-                '2326645-': '-1'}
-df['cluster'] = df['regular'].map(clusters_map)
+# clusters_map = {'930004-': '0', '36185+': '0', '283130+': '0', '352975-': '0', '37703+': '0',
+#                 '278546-': '1', '278990+': '1',
+#                 '239212-': '2', '365256-': '2',
+#                 '2326645-': '-1'}
+# df['cluster'] = df['regular'].map(clusters_map)
+
+# Transcript names define the cluster (i.e. color) of node and all its persons
+# Here we don't know how transcripts correspond to persons so can't identify their colors
+# because the input graph is regular
+clusters_df = pd.read_csv(sys.argv[3], sep='\t', header=None, index_col=0, names=['cluster'])
+df = df.join(clusters_df, on='regular')
 
 # PCA
 def plot_pca_2d(df):
@@ -56,7 +62,7 @@ def plot_pca_2d(df):
     pca_plt = sns.scatterplot(
         x="pca_1", y="pca_2",
         hue="cluster",
-        palette=sns.color_palette("hls", 4),
+        palette=sns.color_palette("hls", df['cluster'].nunique()),
         data=df,
         legend="full",
         # alpha=0.3
@@ -112,7 +118,7 @@ def plot_t_SNE(df):
     t_SNE_plt = sns.scatterplot(
         x="tsne_1", y="tsne_2",
         hue="cluster",
-        palette=sns.color_palette("hls", 4),
+        palette=sns.color_palette("hls", df['cluster'].nunique()),
         data=df,
         legend="full",
         # alpha=0.3
