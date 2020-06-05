@@ -95,15 +95,14 @@ flags.DEFINE_integer('window_size', 5, 'window size over random walk.')
 FLAGS = flags.FLAGS
 
 
-def Splitter(graph,
+def Splitter(graph, persona_graph, persona_id_mapping,
              embedding_dim=128,
              walk_length=40,
              num_walks_node=10,
              constraint_learning_rate_scaling_factor=0.1,
              iterations=10,
              seed=None,
-             window_size=5,
-             local_clustering_fn=persona._CLUSTERING_FN['label_prop']):
+             window_size=5):
   """This function runs the Splitter algorithm.
 
   Given a graph, it decomposes the nodes into personas.  It then embeds the
@@ -113,6 +112,8 @@ def Splitter(graph,
   Args:
     graph: Graph represented as a dictionary of lists that maps each
       node id its list of neighbor ids;
+    persona_graph
+    persona_id_mapping
     embedding_dim: The dimensionality of the embedding to use.
     walk_length: The length of the random walks to generate from each node.
     num_walks_node: The number of walks to start at each node.
@@ -121,25 +122,11 @@ def Splitter(graph,
     iterations: Number of iterations to run for.
     seed: Initial seed to use.
     window_size: Size of the window around the source node in the random walk.
-    local_clustering_fn: A non-overlapping clustering algorithm function that
-      takes in input a nx.Graph and outputs the a clustering. The output format
-      is a list containing each partition as element. Each partition is in turn
-      represented as a list of node ids. The default function is the networkx
-      label_propagation_communities clustering algorithm.
 
   Returns:
-    A pair of (graph, mapping) where "graph" is an nx.Graph instance of the
-    persona graph (which contains different nodes from the original graph) and
-    "mapping" is a dict of the new node ids to the node ids in the original
-    graph.The persona graph as nx.Graph, and the mapping of persona nodes to
-    original node ids.
+    Embedding
   """
   to_return = {}
-
-  print('Running persona decomposition...')
-  # perform persona decomposition
-  persona_graph, persona_id_mapping = persona.CreatePersonaGraph(
-      graph, local_clustering_fn, persona_start_id=graph.number_of_nodes() + 1)
 
   # make sure ids don't collide between persona graph & input
   persona_id_set = set()
@@ -155,9 +142,6 @@ def Splitter(graph,
 
   assert len(graph_id_set & persona_id_set
             ) == 0, 'intersection between graph ids and persona ids is non-zero'
-
-  to_return['persona_graph'] = persona_graph
-  to_return['persona_id_mapping'] = persona_id_mapping
 
   # generate random walks
   print('Generating persona random walks...')
@@ -297,20 +281,19 @@ def main(argv=()):
   graph = nx.read_edgelist(FLAGS.input_graph, create_using=nx.Graph)
 
   # read persona args
-  local_clustering_fn = persona._CLUSTERING_FN[
-      FLAGS.local_clustering_method]
+  local_clustering_fn = persona._CLUSTERING_FN[FLAGS.local_clustering_method]
+  persona_graph, persona_id_mapping = persona.CreatePersonaGraph(graph, local_clustering_fn)
 
   print('Running splitter...')
   splitter = Splitter(
-      graph,
+      graph, persona_graph, persona_id_mapping,
       embedding_dim=FLAGS.embedding_dim,
       walk_length=FLAGS.walk_length,
       num_walks_node=FLAGS.num_walks_node,
       constraint_learning_rate_scaling_factor=FLAGS
       .constraint_learning_rate_scaling_factor,
       iterations=FLAGS.iterations,
-      seed=FLAGS.seed,
-      local_clustering_fn=local_clustering_fn)
+      seed=FLAGS.seed)
 
   # output embeddings
   splitter['persona_model'].save_word2vec_format(
@@ -326,7 +309,7 @@ def main(argv=()):
 
   if FLAGS.output_persona_graph_mapping is not None:
     with open(FLAGS.output_persona_graph_mapping, 'w') as outfile:
-      for persona_node, original_node in splitter['persona_id_mapping'].items():
+      for persona_node, original_node in persona_id_mapping.items():
         outfile.write('{} {}\n'.format(persona_node, original_node))
 
   return 0
