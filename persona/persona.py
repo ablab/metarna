@@ -226,26 +226,23 @@ def CreateEgonets(graph, direction):
   return ego_egonet_map
 
 
-def PersonaOverlappingClustering(persona_graph, persona_id_mapping,
-                                 global_clustering_fn, min_component_size):
+def PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, min_component_size):
   """Computes an overlapping clustering of graph using the Ego-Splitting method.
 
   Args:
-    persona_graph
+    non_overlapping_clustering: persona graph clustering
     persona_id_mapping: a dict of the persona node ids to the node ids in the original
     graph
-    global_clustering_fn: method used for clustering the persona graph.
     min_component_size: minimum size of a cluster to be output.
 
   Returns:
     The overlapping clustering (list of sets of node ids)
   """
-  non_overlapping_clustering = global_clustering_fn(persona_graph)
   overlapping_clustering = set()
   for cluster in non_overlapping_clustering:
     if len(cluster) < min_component_size:
       continue
-    cluster_original_graph = set([persona_id_mapping[c] for c in cluster])
+    cluster_original_graph = set([persona_id_mapping[persona] for persona in cluster])
     cluster_original_graph = list(cluster_original_graph)
     cluster_original_graph.sort()
     overlapping_clustering.add(tuple(cluster_original_graph))
@@ -260,7 +257,8 @@ def main(argv=()):
   persona_graph, persona_id_mapping = CreatePersonaGraph(graph, local_clustering_fn)
 
   global_clustering_fn = _CLUSTERING_FN[FLAGS.global_clustering_method]
-  clustering = PersonaOverlappingClustering(persona_graph, persona_id_mapping, global_clustering_fn, FLAGS.min_cluster_size)
+  non_overlapping_clustering = list(global_clustering_fn(persona_graph))
+  clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, FLAGS.min_cluster_size)
 
   with open(FLAGS.output_clustering, 'w') as outfile:
     for cluster in clustering:
