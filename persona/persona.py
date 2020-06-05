@@ -152,10 +152,10 @@ def CreatePersonaGraph(graph, clustering_fn, persona_start_id=0):
     persona_start_id: The starting id (int) to use for the persona id
 
   Returns:
-    A pair of (graph, mapping) where "graph" is an nx.Graph instance of the
+    A pair of (graph, mapping) where "graph" is an nx.DiGraph instance of the
     persona graph (which contains different nodes from the original graph) and
     "mapping" is a dict of the new node ids to the node ids in the original
-    graph.The persona graph as nx.Graph, and the mapping of persona nodes to
+    graph. The persona graph as nx.DiGraph, and the mapping of persona nodes to
     original node ids.
   """
   in_egonets = CreateEgonets(graph, direction='in')
@@ -226,23 +226,20 @@ def CreateEgonets(graph, direction):
   return ego_egonet_map
 
 
-def PersonaOverlappingClustering(graph, local_clustering_fn,
+def PersonaOverlappingClustering(persona_graph, persona_id_mapping,
                                  global_clustering_fn, min_component_size):
   """Computes an overlapping clustering of graph using the Ego-Splitting method.
 
   Args:
-    graph: a networkx graph for which the egonets have to be constructed.
-    local_clustering_fn: method used for clustering the egonets.
+    persona_graph
+    persona_id_mapping: a dict of the persona node ids to the node ids in the original
+    graph
     global_clustering_fn: method used for clustering the persona graph.
     min_component_size: minimum size of a cluster to be output.
 
   Returns:
-    The a overlapping clustering (list of sets of node ids), the persona graph
-    (nx.Graph) and the persona node
-    id mapping (dictionary of int to string) .
+    The overlapping clustering (list of sets of node ids)
   """
-
-  persona_graph, persona_id_mapping = CreatePersonaGraph(graph, local_clustering_fn)
   non_overlapping_clustering = global_clustering_fn(persona_graph)
   overlapping_clustering = set()
   for cluster in non_overlapping_clustering:
@@ -252,7 +249,7 @@ def PersonaOverlappingClustering(graph, local_clustering_fn,
     cluster_original_graph = list(cluster_original_graph)
     cluster_original_graph.sort()
     overlapping_clustering.add(tuple(cluster_original_graph))
-  return list(overlapping_clustering), persona_graph, persona_id_mapping
+  return list(overlapping_clustering)
 
 
 def main(argv=()):
@@ -260,10 +257,10 @@ def main(argv=()):
   graph = nx.read_edgelist(FLAGS.input_graph, create_using=nx.Graph)
 
   local_clustering_fn = _CLUSTERING_FN[FLAGS.local_clustering_method]
-  global_clustering_fn = _CLUSTERING_FN[FLAGS.global_clustering_method]
+  persona_graph, persona_id_mapping = CreatePersonaGraph(graph, local_clustering_fn)
 
-  clustering, persona_graph, persona_id_mapping = PersonaOverlappingClustering(
-      graph, local_clustering_fn, global_clustering_fn, FLAGS.min_cluster_size)
+  global_clustering_fn = _CLUSTERING_FN[FLAGS.global_clustering_method]
+  clustering = PersonaOverlappingClustering(persona_graph, persona_id_mapping, global_clustering_fn, FLAGS.min_cluster_size)
 
   with open(FLAGS.output_clustering, 'w') as outfile:
     for cluster in clustering:
