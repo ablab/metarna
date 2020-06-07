@@ -95,14 +95,14 @@ flags.DEFINE_integer('window_size', 5, 'window size over random walk.')
 FLAGS = flags.FLAGS
 
 
-def Splitter(graph, persona_graph, persona_id_mapping,
-             embedding_dim=128,
-             walk_length=40,
-             num_walks_node=10,
-             constraint_learning_rate_scaling_factor=0.1,
-             iterations=10,
-             seed=None,
-             window_size=5):
+def do_embedding(graph, persona_graph, persona_id_mapping,
+                 embedding_dim=128,
+                 walk_length=40,
+                 num_walks_node=10,
+                 constraint_learning_rate_scaling_factor=0.1,
+                 iterations=10,
+                 seed=None,
+                 window_size=5):
   """This function runs the Splitter algorithm.
 
   Given a graph, it decomposes the nodes into personas.  It then embeds the
@@ -284,8 +284,8 @@ def main(argv=()):
   local_clustering_fn = persona._CLUSTERING_FN[FLAGS.local_clustering_method]
   persona_graph, persona_id_mapping = persona.CreatePersonaGraph(graph, local_clustering_fn)
 
-  print('Running splitter...')
-  splitter = Splitter(
+  print('Running embedding...')
+  embedding = do_embedding(
       graph, persona_graph, persona_id_mapping,
       embedding_dim=FLAGS.embedding_dim,
       walk_length=FLAGS.walk_length,
@@ -296,16 +296,16 @@ def main(argv=()):
       seed=FLAGS.seed)
 
   # output embeddings
-  splitter['persona_model'].save_word2vec_format(
+  embedding['persona_model'].save_word2vec_format(
       open(FLAGS.output_persona_embedding, 'wb'))
 
   # optional output
   if FLAGS.output_embedding_prior is not None:
-    splitter['regular_model'].save_word2vec_format(
+    embedding['regular_model'].save_word2vec_format(
         open(FLAGS.output_embedding_prior, 'wb'))
 
   if FLAGS.output_persona_graph is not None:
-    nx.write_edgelist(splitter['persona_graph'], FLAGS.output_persona_graph)
+    nx.write_edgelist(embedding['persona_graph'], FLAGS.output_persona_graph)
 
   if FLAGS.output_persona_graph_mapping is not None:
     with open(FLAGS.output_persona_graph_mapping, 'w') as outfile:

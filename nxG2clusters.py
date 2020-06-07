@@ -7,7 +7,7 @@ import networkx as nx
 
 from persona.persona import CreatePersonaGraph, PersonaOverlappingClustering
 from persona.persona import _CLUSTERING_FN
-from persona.splitter import Splitter
+from persona.splitter import do_embedding
 
 import gfa2nxG
 
@@ -52,14 +52,27 @@ with open(os.path.join(outdir, 'persona_graph_mapping.tsv'), 'w') as outfile:
         outfile.write('{} {}\n'.format(persona_node, original_node))
 
 print('Running splitter...')
-splitter = Splitter(G_tst, persona_graph, persona_id_mapping,
-                    embedding_dim=128, walk_length=10, num_walks_node=40,
-                    constraint_learning_rate_scaling_factor=0.1, iterations=10,
-                    seed=1)
+embedding = do_embedding(G_tst, persona_graph, persona_id_mapping,
+                         embedding_dim=128, walk_length=10, num_walks_node=40,
+                         constraint_learning_rate_scaling_factor=0.1, iterations=10,
+                         seed=1)
 
 # output embeddings
-splitter['persona_model'].save_word2vec_format(open(os.path.join(outdir, 'persona_embedding.tsv'), 'wb'))
+def remove_regular_model(in_path, out_path):
+    fout = open(out_path, 'w')
+
+    with open(in_path, 'r') as fin:
+        for line in fin:
+            node = line.split()[0]
+            if not ('+' in node or '-' in node):
+                fout.write(line)
+
+    fout.close()
+
+persona_model = os.path.join(outdir, 'persona_embedding.tsv')
+embedding['persona_model'].save_word2vec_format(open(persona_model, 'wb'))
+remove_regular_model(persona_model, os.path.join(outdir, 'persona_embedding.clear.tsv'))
 
 # optional output
-splitter['regular_model'].save_word2vec_format(open(os.path.join(outdir, 'embedding_prior.tsv'), 'wb'))
+embedding['regular_model'].save_word2vec_format(open(os.path.join(outdir, 'embedding_prior.tsv'), 'wb'))
 

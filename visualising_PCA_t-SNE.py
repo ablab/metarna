@@ -20,7 +20,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 
-X = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skipfooter=10)
+p_emb = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skipfooter=10)
 
 persona_to_node = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['initial_node'])
 
@@ -37,9 +37,9 @@ def do_PCA(X):
     print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
     return pca_df
 
-pca_df = do_PCA(X)
+pca_df = do_PCA(p_emb)
 
-df = pd.concat([X, pca_df, persona_to_node], axis=1)
+df = pd.concat([p_emb, pca_df, persona_to_node], axis=1)
 
 # if clusters overlap then 0 else cluster number
 # path1 930004-,278546-,36185+,278990+,283130+,352975-,37703+
@@ -128,7 +128,7 @@ def do_t_SNE(X):
     return tsne_df
 
 
-X_subset, df_subset = get_subset(X, df, 10000)
+X_subset, df_subset = get_subset(p_emb, df, 10000)
 # pca_df = do_PCA(X_subset)
 tsne_df = do_t_SNE(X_subset)
 df_subset = pd.concat([df_subset, tsne_df], axis=1)
