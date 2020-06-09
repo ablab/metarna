@@ -33,7 +33,7 @@ G_tst.add_edges_from([('36185+', '278990+'), ('283130+', '352975-'), ('36185+', 
 # X = gfa2nxG.get_X(G_tst)
 # A = gfa2nxG.get_A(G_tst)
 
-persona_graph, persona_id_mapping = CreatePersonaGraph(G_tst, local_clustering_fn)
+persona_graph, persona_id_mapping = CreatePersonaGraph(G, local_clustering_fn)
 non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 0)
 
@@ -52,8 +52,8 @@ with open(os.path.join(outdir, 'persona_graph_mapping.tsv'), 'w') as outfile:
         outfile.write('{} {}\n'.format(persona_node, original_node))
 
 print('Running splitter...')
-embedding = do_embedding(G_tst, persona_graph, persona_id_mapping,
-                         embedding_dim=128, walk_length=10, num_walks_node=40,
+embedding = do_embedding(G, persona_graph, persona_id_mapping,
+                         embedding_dim=64, walk_length=10, num_walks_node=40,
                          constraint_learning_rate_scaling_factor=0.1, iterations=10,
                          seed=1)
 

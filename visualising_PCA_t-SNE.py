@@ -20,7 +20,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 
-p_emb = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1, skipfooter=10)
+p_emb = pd.read_csv(sys.argv[1], sep=' ', header=None, index_col=0, skiprows=1)
 
 persona_to_node = pd.read_csv(sys.argv[2], sep=' ', header=None, index_col=0, names=['initial_node'])
 
@@ -56,6 +56,8 @@ df = pd.concat([p_emb, pca_df, persona_to_node], axis=1)
 # because the input graph is regular
 node_colors = pd.read_csv(sys.argv[3], sep='\t', header=None, index_col=0, names=['ground_truth'])
 df = df.join(node_colors, on='initial_node')
+# colorize nodes without pathes in red
+df['ground_truth'] = df['ground_truth'].fillna('0')
 
 def persona_coloring(persona_clustering_tsv):
     # Coloring using persona graph clustering
