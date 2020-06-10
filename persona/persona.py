@@ -177,6 +177,7 @@ def CreatePersonaGraph(graph, clustering_fn, persona_start_id=0):
       node_neighbor_to_persona_id(node, in_egonets[node], persona_id_counter, clustering_fn,
                                   predecessor_persona_id_map, persona_to_original_mapping)
 
+  persona_graph.add_nodes_from(persona_to_original_mapping.keys())
   for u in graph.nodes():  # Process mapping to create persona graph.
     for v in graph.successors(u):
       if v == u:
