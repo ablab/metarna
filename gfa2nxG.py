@@ -75,13 +75,14 @@ def get_A(G):
     print(A.todense())
     return A
 
-def get_X(G):
+def get_X(G, outdir):
     X = []
     features = ['len', 'cov', 'A', 'C', 'G', 'T']
-    print('features: ', features)
-    for node in G.nodes:
-        X.append([G.nodes[node][key] for key in features])
-        print(node, X[-1][0], ' '.join(["%.2f" % e for e in X[-1][1:]]))
+    with open(os.path.join(outdir, 'features.tsv'), 'w') as fout:
+        fout.write('node ' + ' '.join(features) + '\n')
+        for node in G.nodes:
+            X.append([G.nodes[node][key] for key in features])
+            fout.write(node + ' ' + str(X[-1][0]) + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
 def spaligner_to_df(tsv):
@@ -135,7 +136,7 @@ def main():
     A = get_A(G)
 
     # Get feature matrix
-    X = get_X(G)
+    X = get_X(G, outdir)
 
     # Set labels for nodes
     G = set_node_labels(G, tsv, outdir)
