@@ -19,11 +19,21 @@ def line_to_node(line):
         attr['KC'] = kmer_count
     return name, attr
 
+# L       934049  -       36137   +       49M
 def line_to_edge(line):
     fields = line.strip().split()
     # Node name plus node orientation
     u = fields[1] + fields[2]
     v = fields[3] + fields[4]
+    attr = {'cigar': fields[5]}
+    return u, v, attr
+
+def line_to_rc_edge(line):
+    rc_dict = {'+': '-', '-': '+'}
+    fields = line.strip().split()
+    # Node name plus node orientation
+    u = fields[3] + rc_dict[fields[4]]
+    v = fields[1] + rc_dict[fields[2]]
     attr = {'cigar': fields[5]}
     return u, v, attr
 
@@ -54,6 +64,9 @@ def gfa_to_G(gfa):
                            T=attr['seq'].count('A') * 1.0 / len(attr['seq']))
             elif record_type == 'L':
                 u, v, attr = line_to_edge(line)
+                G.add_edge(u, v, **attr)
+
+                u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
     return G
 
