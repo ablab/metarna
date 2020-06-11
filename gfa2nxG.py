@@ -75,10 +75,10 @@ def get_A(G):
     print(A.todense())
     return A
 
-def get_X(G, outdir):
+def get_X(G, out_tsv):
     X = []
     features = ['len', 'cov', 'A', 'C', 'G', 'T']
-    with open(os.path.join(outdir, 'features.tsv'), 'w') as fout:
+    with open(out_tsv, 'w') as fout:
         fout.write('node ' + ' '.join(features) + '\n')
         for node in G.nodes:
             X.append([G.nodes[node][key] for key in features])
@@ -97,7 +97,7 @@ def spaligner_to_df(tsv):
                                                'sequence of alignment Path'])
     return tsv_df
 
-def set_node_labels(G, tsv, outdir):
+def set_node_labels(G, tsv, node_to_db_tsv):
     tsv_df = spaligner_to_df(tsv)
 
     # Split path column into multiple rows
@@ -114,7 +114,7 @@ def set_node_labels(G, tsv, outdir):
 
     # print(nx.get_node_attributes(G,'label'))
 
-    with open(os.path.join(outdir, 'node_to_db.tsv'), 'w') as fin:
+    with open(node_to_db_tsv, 'w') as fin:
         for node, transcripts in grouped_dict.items():
             fin.write(node + '\t' + ' '.join(transcripts) + '\n')
 
