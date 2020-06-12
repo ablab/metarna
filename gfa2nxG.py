@@ -82,7 +82,7 @@ def get_X(G, out_tsv):
         fout.write('node ' + ' '.join(features) + '\n')
         for node in G.nodes:
             X.append([G.nodes[node][key] for key in features])
-            fout.write(node + ' ' + str(X[-1][0]) + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
+            fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
 def spaligner_to_df(tsv):
@@ -136,10 +136,12 @@ def main():
     A = get_A(G)
 
     # Get feature matrix
-    X = get_X(G, outdir)
+    features_tsv = os.path.join(outdir, 'features.tsv')
+    X = get_X(G, features_tsv)
 
     # Set labels for nodes
-    G = set_node_labels(G, tsv, outdir)
+    node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
+    G = set_node_labels(G, tsv, node_to_db_tsv)
 
 
 if __name__ == '__main__':
