@@ -5,6 +5,8 @@ import os
 
 import networkx as nx
 
+import pandas as pd
+
 from persona.persona import CreatePersonaGraph, PersonaOverlappingClustering
 from persona.persona import _CLUSTERING_FN
 from persona.splitter import do_embedding
@@ -36,6 +38,25 @@ def get_tst_G(G):
     G_tst = G.subgraph(nodes_tst).copy()
     return G_tst
 
+
+def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
+    # concatenate structural features (persona graph embedding)
+    # and node features (len, cov, A, C, G, T)
+    p_emb = pd.read_csv(p_emb_tsv, sep=' ', header=None, index_col=0, skiprows=1)
+
+    features = pd.read_csv(features_tsv, sep=' ',
+                           header=None, index_col=0, skiprows=1,
+                           names=range(p_emb.shape[1], p_emb.shape[1] + 7))
+
+    persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
+                                  header=None, index_col=0,
+                                  names=['initial_node'])
+
+    tot_emb_df = pd.concat([p_emb, persona_to_node], axis=1).join(features, on='initial_node')
+    tot_emb_df = tot_emb_df.drop(columns=['initial_node'])
+
+    return tot_emb_df
+
 def main():
     gfa = sys.argv[1]
     spaligner_tsv = sys.argv[2]
@@ -43,7 +64,7 @@ def main():
 
     G = gfa2nxG.gfa_to_G(gfa)
 
-    # G_tst = get_tst_G(G)
+    # G = get_tst_G(G)
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
@@ -88,7 +109,9 @@ def main():
     # optional output
     embedding['regular_model'].save_word2vec_format(open(os.path.join(outdir, 'embedding_prior.tsv'), 'wb'))
 
-    visualising_PCA_tSNE.visualize_embedding(p_emb_tsv, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+    tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
+
+    visualising_PCA_tSNE.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
 
 
 if __name__ == '__main__':

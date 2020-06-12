@@ -104,20 +104,21 @@ def plot_t_SNE(df, color_col, outdir):
     t_SNE_plt.figure.savefig(os.path.join(outdir, "t-SNE.{}.png".format(color_col)))
 
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
-def visualize_embedding(p_emb_tsv, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir):
-    p_emb = pd.read_csv(p_emb_tsv, sep=' ', header=None, index_col=0, skiprows=1)
+def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir):
+    pca_df = do_PCA(embedding_df)
 
-    persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ', header=None, index_col=0, names=['initial_node'])
+    persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
+                                  header=None, index_col=0,
+                                  names=['initial_node'])
 
-    pca_df = do_PCA(p_emb)
-
-    df = pd.concat([p_emb, pca_df, persona_to_node], axis=1)
+    df = pd.concat([embedding_df, pca_df, persona_to_node], axis=1)
 
     # Coloring using db
     # Transcript names define the cluster (i.e. color) of node and all its persons
     # Here we don't know how transcripts correspond to persons so can't identify their colors
     # because the input graph is regular
-    node_colors = pd.read_csv(node_to_db_tsv, sep='\t', header=None, index_col=0, names=['ground_truth'])
+    node_colors = pd.read_csv(node_to_db_tsv, sep='\t', header=None,
+                              index_col=0, names=['ground_truth'])
     df = df.join(node_colors, on='initial_node')
     # colorize nodes without pathes in red
     df['ground_truth'] = df['ground_truth'].fillna('0')
@@ -130,7 +131,7 @@ def visualize_embedding(p_emb_tsv, persona_to_node_tsv, node_to_db_tsv, p_cluste
     plot_pca_2d(df, 'persona_color', outdir)
     # plot_pca_3d(df, 'persona_color')
 
-    X_subset, df_subset = get_subset(p_emb, df, 10000)
+    X_subset, df_subset = get_subset(embedding_df, df, 10000)
     # pca_df = do_PCA(X_subset)
     tsne_df = do_t_SNE(X_subset)
     df_subset = pd.concat([df_subset, tsne_df], axis=1)
