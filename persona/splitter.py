@@ -64,7 +64,7 @@ from __future__ import print_function
 import os.path
 import random
 
-from . import persona
+from . import directed_persona
 from absl import app
 from absl import flags
 from gensim.models import Word2Vec
@@ -281,8 +281,8 @@ def main(argv=()):
   graph = nx.read_edgelist(FLAGS.input_graph, create_using=nx.Graph)
 
   # read persona args
-  local_clustering_fn = persona._CLUSTERING_FN[FLAGS.local_clustering_method]
-  persona_graph, persona_id_mapping = persona.CreateDirectedPersonaGraph(graph, local_clustering_fn)
+  local_clustering_fn = directed_persona._CLUSTERING_FN[FLAGS.local_clustering_method]
+  persona_graph, persona_id_mapping = directed_persona.CreateDirectedPersonaGraph(graph, local_clustering_fn)
 
   print('Running embedding...')
   embedding = do_embedding(

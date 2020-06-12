@@ -7,8 +7,9 @@ import networkx as nx
 
 import pandas as pd
 
-from persona.persona import CreateDirectedPersonaGraph, PersonaOverlappingClustering
-from persona.persona import _CLUSTERING_FN
+from persona.directed_persona import CreateDirectedPersonaGraph
+from persona.persona import PersonaOverlappingClustering
+from persona.flags import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
 import gfa2nxG
