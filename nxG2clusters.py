@@ -7,7 +7,7 @@ import networkx as nx
 
 import pandas as pd
 
-from persona.persona import CreatePersonaGraph, PersonaOverlappingClustering
+from persona.persona import CreateDirectedPersonaGraph, PersonaOverlappingClustering
 from persona.persona import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
@@ -73,7 +73,7 @@ def main():
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
     G = gfa2nxG.set_node_labels(G, spaligner_tsv, node_to_db_tsv)
 
-    persona_graph, persona_id_mapping = CreatePersonaGraph(G, local_clustering_fn)
+    persona_graph, persona_id_mapping = CreateDirectedPersonaGraph(G, local_clustering_fn)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 

@@ -282,7 +282,7 @@ def main(argv=()):
 
   # read persona args
   local_clustering_fn = persona._CLUSTERING_FN[FLAGS.local_clustering_method]
-  persona_graph, persona_id_mapping = persona.CreatePersonaGraph(graph, local_clustering_fn)
+  persona_graph, persona_id_mapping = persona.CreateDirectedPersonaGraph(graph, local_clustering_fn)
 
   print('Running embedding...')
   embedding = do_embedding(

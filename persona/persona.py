@@ -48,10 +48,7 @@ Where ${graph} is the path to a text file containing the graph and
 ${clustering_output} is the path to the output clustering.
 
 The graph input format is a text file containing one edge per row represented
-as its pair of node ids. The graph is supposed to be directed.
-For instance the file:
-1 2
-2 3
+as its pair of node ids.
 
 The output clustering format is a text file containing for each row one
 (overlapping) cluster represented as the space-separted list of node ids in the
@@ -88,8 +85,7 @@ _CLUSTERING_FN = {
 flags.DEFINE_string(
     'input_graph', None,
     'The input graph path as a text file containing one edge per row, as the '
-    'two node ids u v of the edge separated by a whitespace. The graph is '
-    'assumed to be directed. For example the file:\n1 2\n2 3\n')
+    'two node ids u v of the edge separated by a whitespace.')
 
 flags.DEFINE_string(
     'output_clustering', None,
@@ -123,9 +119,9 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 
-
-def node_neighbor_to_persona_id(node, egonet, persona_id_counter, clustering_fn,
-                                node_neighbor_to_persona_id_map, persona_to_original_mapping):
+# Create map of persona id for node neighbors in directed graphs
+def neighbor_to_persona_id(node, egonet, persona_id_counter, clustering_fn,
+                           neighbor_to_persona_id_map, persona_to_original_mapping):
     partitioning = clustering_fn(egonet)  # Clustering the egonet.
     seen_neighbors = set()
     # Process each of the egonet's local clusters.
@@ -133,49 +129,39 @@ def node_neighbor_to_persona_id(node, egonet, persona_id_counter, clustering_fn,
         persona_id = next(persona_id_counter)
         persona_to_original_mapping[persona_id] = node
         for neighbor in partition:
-            node_neighbor_to_persona_id_map[node][neighbor] = persona_id
+            neighbor_to_persona_id_map[neighbor] = persona_id
             assert neighbor not in seen_neighbors
             seen_neighbors.add(neighbor)
 
-
-def CreatePersonaGraph(graph, clustering_fn, persona_start_id=0):
-  """The function creates the persona graph.
+def CreateDirectedPersonaGraph(graph, clustering_fn, persona_start_id=0):
+  """The function creates the directed persona graph.
 
   Args:
-    graph: Directed graph represented as a dictionary of lists that maps each
-      node id its list of neighbor ids;
-    clustering_fn: A non-overlapping clustering algorithm function that takes in
-      input a nx.Graph and outputs the a clustering. The output format is a list
-      containing each partition as element. Each partition is in turn
-      represented as a list of node ids. The default function is the networkx
-      label_propagation_communities clustering algorithm.
-    persona_start_id: The starting id (int) to use for the persona id
+    graph: Directed graph;
+    clustering_fn: A non-overlapping clustering algorithm function;
+    persona_start_id: The starting int id to use for the persona id;
 
   Returns:
-    A pair of (graph, mapping) where "graph" is an nx.DiGraph instance of the
-    persona graph (which contains different nodes from the original graph) and
-    "mapping" is a dict of the new node ids to the node ids in the original
-    graph. The persona graph as nx.DiGraph, and the mapping of persona nodes to
+    The persona graph as nx.DiGraph, and the mapping of persona nodes to
     original node ids.
   """
-  in_egonets = CreateEgonets(graph, direction='in')
-  out_egonets = CreateEgonets(graph, direction='out')
+  in_egonets = CreateDirectedEgonets(graph, direction='in')
+  out_egonets = CreateDirectedEgonets(graph, direction='out')
 
   persona_graph = nx.DiGraph()
   persona_to_original_mapping = dict()
   successor_persona_id_map = collections.defaultdict(dict)
   predecessor_persona_id_map = collections.defaultdict(dict)
 
-  # Next id to allacate in persona graph.
+  # Next id to allocate in persona graph.
   persona_id_counter = itertools.count(start=persona_start_id)
-
   for node in graph.nodes():
       # Separate clustering the egonet in forward direction (for output node edges)
-      node_neighbor_to_persona_id(node, out_egonets[node], persona_id_counter, clustering_fn,
-                                  successor_persona_id_map, persona_to_original_mapping)
+      neighbor_to_persona_id(node, out_egonets[node], persona_id_counter, clustering_fn,
+                             successor_persona_id_map[node], persona_to_original_mapping)
       # And separate clustering for input node edges (backward direction)
-      node_neighbor_to_persona_id(node, in_egonets[node], persona_id_counter, clustering_fn,
-                                  predecessor_persona_id_map, persona_to_original_mapping)
+      neighbor_to_persona_id(node, in_egonets[node], persona_id_counter, clustering_fn,
+                             predecessor_persona_id_map[node], persona_to_original_mapping)
 
   persona_graph.add_nodes_from(persona_to_original_mapping.keys())
   for u in graph.nodes():  # Process mapping to create persona graph.
@@ -192,15 +178,14 @@ def CreatePersonaGraph(graph, clustering_fn, persona_start_id=0):
 
   return persona_graph, persona_to_original_mapping
 
-
-def CreateEgonets(graph, direction):
-  """Given a graph, construct all the egonets of the graph.
+def CreateDirectedEgonets(graph, direction):
+  """Given a directed graph, construct all the egonets of the graph.
 
   Args:
-    graph: a nx.Graph instance for which the egonets have to be constructed.
+    graph: a nx.diGraph instance for which the egonets have to be constructed.
 
   Returns:
-    A dict mapping each node id to an instance of nx.Graph which represents the
+    A dict mapping each node id to an instance of nx.diGraph which represents the
     egonet for that node.
   """
   assert direction in ['in', 'out']
@@ -225,7 +210,6 @@ def CreateEgonets(graph, direction):
           ego_egonet_map[node].add_edge(u, v)
 
   return ego_egonet_map
-
 
 def PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, min_component_size):
   """Computes an overlapping clustering of graph using the Ego-Splitting method.
@@ -255,7 +239,7 @@ def main(argv=()):
   graph = nx.read_edgelist(FLAGS.input_graph, create_using=nx.Graph)
 
   local_clustering_fn = _CLUSTERING_FN[FLAGS.local_clustering_method]
-  persona_graph, persona_id_mapping = CreatePersonaGraph(graph, local_clustering_fn)
+  persona_graph, persona_id_mapping = CreateDirectedPersonaGraph(graph, local_clustering_fn)
 
   global_clustering_fn = _CLUSTERING_FN[FLAGS.global_clustering_method]
   non_overlapping_clustering = list(global_clustering_fn(persona_graph))
