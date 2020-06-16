@@ -64,6 +64,9 @@ def main():
     spaligner_tsv = sys.argv[2]
     outdir = sys.argv[3]
 
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+
     G = gfa2nxG.gfa_to_G(gfa)
 
     # G = get_tst_G(G)
