@@ -14,6 +14,7 @@ from persona.flags import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
 import gfa2nxG
+import spaligner_parser
 import visualising_embedding
 import evaluating_clustering
 
@@ -124,7 +125,7 @@ def main():
     visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
 
     spaligner_clustering_tsv = os.path.join(outdir, 'spaligner_clustering.tsv')
-    evaluating_clustering.spaligner_clusters_to_tsv(spaligner_tsv, spaligner_clustering_tsv)
+    spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv, spaligner_clustering_tsv)
     evaluating_clustering.evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
 
 

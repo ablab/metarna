@@ -11,7 +11,7 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
-import spaligner2df
+import spaligner_parser
 
 
 def line_to_node(line):
@@ -90,7 +90,7 @@ def get_X(nodes, out_tsv):
     return X
 
 def set_node_labels(G, tsv, node_to_db_tsv):
-    tsv_df = spaligner2df.spaligner_to_df(tsv)
+    tsv_df = spaligner_parser.spaligner_to_df(tsv)
 
     # Split path column into multiple rows
     new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),

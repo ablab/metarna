@@ -4,17 +4,8 @@ import os
 import pandas as pd
 import csv
 
-import spaligner2df
+import spaligner_parser
 
-
-def spaligner_clusters_to_tsv(spaligner_tsv, clustering_tsv):
-    tsv_df = spaligner2df.spaligner_to_df(spaligner_tsv)
-    tsv_df['path of the alignment'] = tsv_df['path of the alignment'].str.replace(',', ' ')
-    tsv_df['path of the alignment'] = tsv_df['path of the alignment'].str.replace(';', ' ')
-    tsv_df.to_csv(clustering_tsv,
-                  columns=['path of the alignment'],
-                  sep='\t', header=False, index=False)
-    return clustering_tsv
 
 def tsv_to_sets(tsv):
     clusters = set()
@@ -46,7 +37,7 @@ def evaluate_clustering(clustering_tsv, spaligner_clustering_tsv):
 
 def main():
     outdir = os.path.join(sys.argv[3])
-    spaligner_clustering_tsv = spaligner_clusters_to_tsv(sys.argv[2], os.path.join(outdir, 'spaligner_clustering.tsv'))
+    spaligner_clustering_tsv = spaligner_parser.spaligner_to_clustering_tsv(sys.argv[2], os.path.join(outdir, 'spaligner_clustering.tsv'))
     evaluate_clustering(sys.argv[1], spaligner_clustering_tsv)
 
 
