@@ -14,7 +14,9 @@ from persona.flags import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
 import gfa2nxG
-import visualising_PCA_tSNE
+import visualising_embedding
+import evaluating_clustering
+
 
 local_clustering_fn = _CLUSTERING_FN['label_prop']
 global_clustering_fn = _CLUSTERING_FN['label_prop']
@@ -91,7 +93,8 @@ def main():
         for cluster in non_overlapping_clustering:
             outfile.write(' '.join([str(x) for x in cluster]) + '\n')
 
-    with open(os.path.join(outdir, 'clustering.tsv'), 'w') as outfile:
+    clustering_tsv = os.path.join(outdir, 'clustering.tsv')
+    with open(clustering_tsv, 'w') as outfile:
         for cluster in clustering:
             outfile.write(' '.join([str(x) for x in cluster]) + '\n')
 
@@ -118,7 +121,11 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualising_PCA_tSNE.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+    visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+
+    spaligner_clustering_tsv = os.path.join(outdir, 'spaligner_clustering.tsv')
+    evaluating_clustering.spaligner_clusters_to_tsv(spaligner_tsv, spaligner_clustering_tsv)
+    evaluating_clustering.evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
 
 
 if __name__ == '__main__':
