@@ -27,12 +27,43 @@ def jaccard_similarity(set1, set2):
     print('Clusters in total: {}'.format(down))
     return up / down
 
-def evaluate_clustering(clustering_tsv, spaligner_clustering_tsv):
-    clusters = tsv_to_sets(clustering_tsv)
-    spaligner_clusters = tsv_to_sets(spaligner_clustering_tsv)
+def F1_for_two_clusters(reconstructed_cluster, ground_truth_cluster):
+    precision = \
+        len(ground_truth_cluster.intersection(reconstructed_cluster)) / \
+        len(reconstructed_cluster)
+    recall = \
+        len(ground_truth_cluster.intersection(reconstructed_cluster)) / \
+        len(ground_truth_cluster)
+    if precision + recall != 0:
+        F1 = 2 * precision * recall / (precision + recall)
+    else:
+        F1 = 0
+    return F1
 
-    J = jaccard_similarity(clusters, spaligner_clusters)
+def F1_best_match(r_cluster, ground_truth_set):
+    F1_best_match = 0
+    for gt_cluster in ground_truth_set:
+        F1_curr = F1_for_two_clusters(r_cluster, gt_cluster)
+        if F1_best_match < F1_curr:
+            F1_best_match = F1_curr
+    return F1_best_match
+
+def F1_for_clustering(reconstructed_set, ground_truth_set):
+    F1 = 0
+    for r_cluster in reconstructed_set:
+        F1 += F1_best_match(r_cluster, ground_truth_set)
+    F1 /= len(reconstructed_set)
+    return F1
+
+def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_tsv):
+    reconstructed_clusters = tsv_to_sets(reconstructed_clustering_tsv)
+    ground_truth_clusters = tsv_to_sets(ground_truth_clustering_tsv)
+
+    J = jaccard_similarity(reconstructed_clusters, ground_truth_clusters)
     print('Jaccard similarity: %.3f' % J)
+
+    F1 = F1_for_clustering(reconstructed_clusters, ground_truth_clusters)
+    print('F1 score: %.3f' % F1)
 
 
 def main():
