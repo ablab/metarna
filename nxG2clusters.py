@@ -7,6 +7,7 @@ import networkx as nx
 
 import pandas as pd
 
+from persona.persona import CreatePersonaGraph
 from persona.directed_persona import CreateDirectedPersonaGraph
 from persona.persona import PersonaOverlappingClustering
 from persona.flags import _CLUSTERING_FN
@@ -15,8 +16,8 @@ from persona.splitter import do_embedding
 import gfa2nxG
 import visualising_PCA_tSNE
 
-local_clustering_fn = _CLUSTERING_FN['weakly_connected_components']
-global_clustering_fn = _CLUSTERING_FN['weakly_connected_components']
+local_clustering_fn = _CLUSTERING_FN['label_prop']
+global_clustering_fn = _CLUSTERING_FN['label_prop']
 
 def remove_regular_model(in_path, out_path):
     fout = open(out_path, 'w')
@@ -69,12 +70,14 @@ def main():
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
-    X = gfa2nxG.get_X(G, features_tsv)
+    X = gfa2nxG.get_X(G.nodes, features_tsv)
     # Set labels for nodes
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
     G = gfa2nxG.set_node_labels(G, spaligner_tsv, node_to_db_tsv)
 
-    persona_graph, persona_id_mapping = CreateDirectedPersonaGraph(G, local_clustering_fn)
+    fG = gfa2nxG.get_friendship_G(G, gfa2nxG.get_friendships(G))
+
+    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 

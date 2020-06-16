@@ -2,6 +2,8 @@
 
 import sys, os
 
+import time
+
 import scipy as sp
 import pandas as pd
 
@@ -75,13 +77,13 @@ def get_A(G):
     print(A.todense())
     return A
 
-def get_X(G, out_tsv):
+def get_X(nodes, out_tsv):
     X = []
     features = ['len', 'cov', 'A', 'C', 'G', 'T']
     with open(out_tsv, 'w') as fout:
         fout.write('node ' + ' '.join(features) + '\n')
-        for node in G.nodes:
-            X.append([G.nodes[node][key] for key in features])
+        for node in nodes:
+            X.append([nodes[node][key] for key in features])
             fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
@@ -120,6 +122,25 @@ def set_node_labels(G, tsv, node_to_db_tsv):
 
     return G
 
+# Path existence between nodes in gfa graph means edge in friendship graph
+# Nodes connected in friendship graph more likely to belong one gene (like social community)
+def get_friendships(G):
+    start = time.time()
+    friendships = []
+    for u in G.nodes:
+        for v in G.nodes:
+            if nx.algorithms.shortest_paths.generic.has_path(G, u, v):
+                friendships.append((u, v))
+    end = time.time()
+    print('Elapsed time on friendship graph construction: ', (end - start) * 1.0 / 60 / 60)
+    return friendships
+
+def get_friendship_G(G, friendships):
+    fG = nx.Graph()
+    fG.add_nodes_from(G.nodes, data=True)
+    fG.add_edges_from(friendships)
+    return fG
+
 def main():
     # SPAdes output
     gfa = sys.argv[1]
@@ -137,11 +158,13 @@ def main():
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
-    X = get_X(G, features_tsv)
+    X = get_X(G.nodes, features_tsv)
 
     # Set labels for nodes
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
     G = set_node_labels(G, tsv, node_to_db_tsv)
+
+    fG = get_friendship_G(G, get_friendships(G))
 
 
 if __name__ == '__main__':
