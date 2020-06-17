@@ -123,6 +123,10 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
     # colorize nodes without pathes in red
     df['ground_truth'] = df['ground_truth'].fillna('0')
 
+    # Coloring using SPAdes pathes
+    # TODO
+
+    # Coloring using persona graph clustering
     persona_colors = persona_coloring(p_clustering_tsv)
     df = pd.concat([df, persona_colors.to_frame(name='persona_color')], axis=1)
 
@@ -138,3 +142,23 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
 
     plot_t_SNE(df_subset, 'ground_truth', outdir)
     plot_t_SNE(df_subset, 'persona_color', outdir)
+
+
+def main():
+    from nxG2clusters import get_total_emb
+
+    outdir = sys.argv[1]
+
+    persona_to_node_tsv = os.path.join(outdir, 'persona_graph_mapping.tsv')
+    node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
+    p_clustering_tsv = os.path.join(outdir, 'persona_clustering.tsv')
+    p_emb_tsv = os.path.join(outdir, 'persona_embedding.clear.tsv')
+    features_tsv = os.path.join(outdir, 'features.tsv')
+
+    tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
+
+    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+
+
+if __name__ == '__main__':
+    main()
