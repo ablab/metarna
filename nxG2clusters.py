@@ -13,7 +13,7 @@ from persona.persona import PersonaOverlappingClustering
 from persona.flags import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
-import gfa2nxG
+import gfa_parser
 import spaligner_parser
 import visualising_embedding
 import evaluating_clustering
@@ -70,18 +70,18 @@ def main():
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    G = gfa2nxG.gfa_to_G(gfa)
+    G = gfa_parser.gfa_to_G(gfa)
 
     # G = get_tst_G(G)
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
-    X = gfa2nxG.get_X(G.nodes, features_tsv)
+    X = gfa_parser.get_X(G.nodes, features_tsv)
     # Set labels for nodes
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
-    G = gfa2nxG.set_node_labels(G, spaligner_tsv, node_to_db_tsv)
+    G = gfa_parser.set_node_labels(G, spaligner_tsv, node_to_db_tsv)
 
-    fG = gfa2nxG.get_friendship_G(G, gfa2nxG.get_friendships(G))
+    fG = gfa_parser.get_friendship_G(G, gfa_parser.get_friendships(G))
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
@@ -122,7 +122,7 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+    visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir)
 
     spaligner_clustering_tsv = os.path.join(outdir, 'spaligner_clustering.tsv')
     spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv, spaligner_clustering_tsv)

@@ -1,4 +1,4 @@
-# gfa2nxG.py assembly_graph_with_scaffolds.gfa alignment.tsv outdir
+# gfa_parser.py assembly_graph_with_scaffolds.gfa alignment.tsv outdir
 
 import sys, os
 
@@ -13,6 +13,17 @@ from Bio.Seq import reverse_complement
 
 import spaligner_parser
 
+def get_one_type_gfa(gfa, type, outdir):
+    one_type_gfa = os.path.join(outdir, '{}.gfa'.format(type))
+    os.system('grep \'^{}\' {} > {}'.format(type, gfa, one_type_gfa))
+    return one_type_gfa
+
+# 'RecordType', 'PathName', 'SegmentNames', 'Overlaps'
+def one_type_gfa_to_df(one_type_gfa):
+    p_df = pd.read_csv(one_type_gfa,
+                       sep="\t", header=None, usecols=[1, 2],
+                       names=['PathName', 'SegmentNames'])
+    return p_df
 
 def line_to_node(line):
     fields = line.strip().split()

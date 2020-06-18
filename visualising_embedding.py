@@ -17,6 +17,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import seaborn as sns
 
+from gfa_parser import get_one_type_gfa, one_type_gfa_to_df
+
 
 def do_PCA(X):
     pca = PCA(n_components=3)
@@ -42,6 +44,38 @@ def persona_coloring(persona_clustering_tsv):
             persona_colors = persona_colors.append(curr, verify_integrity=True)
             num_cluster += 1
     return persona_colors
+
+# P       NODE_3_length_8008_cov_10.238095_g2_i0_1        509693+,39698+  *
+# P       NODE_4_length_7888_cov_11.161628_g3_i0_1        37773+  *
+# def p_line_to_path(line):
+#     fields = line.strip().split()
+#     t_name = fields[1] + '+'
+#     nodes = fields[2].split(',')
+#     return t_name, nodes
+
+# def p_line_to_rc_path(line):
+#     rc_dict = {'+': '-', '-': '+'}
+#     fields = line.strip().split()
+#     rc_t_name = fields[1] + '-'
+#     rc_nodes = [node[:-1] + rc_dict[node[-1]] for node in reversed(fields[2].split(','))]
+#     return rc_t_name, rc_nodes
+
+# Coloring using SPAdes gfa
+# Transcript (path) names define the cluster (i.e. color) of node and all its persons
+def spades_coloring(gfa, outdir):
+    p_gfa = get_one_type_gfa(gfa, 'P', outdir)
+    p_gfa_df = one_type_gfa_to_df(p_gfa)
+    colors = pd.DataFrame(p_gfa_df.SegmentNames.str.split(',').tolist(), index=p_gfa_df.PathName).stack()
+    colors = colors.reset_index()[[0, 'PathName']]
+    colors.columns = ['SegmentNames', 'PathName']
+    # To distinguish forward and reverse complement transcript colors
+    colors['PathName'] = colors['PathName'].apply(lambda p: "{}+".format(p))
+    # Colors for reverse complement nodes
+    # since pathes (and links) in gfa includes only one of them (forward or rc)
+    rc_colors = colors.applymap(lambda s: s.translate(str.maketrans({'+': '-', '-': '+'})))
+    spades_colors = pd.concat([colors, rc_colors], axis=0).set_index('SegmentNames')
+    spades_colors = spades_colors.groupby('SegmentNames')['PathName'].apply(' '.join)
+    return spades_colors
 
 # PCA
 def plot_pca_2d(df, color_col, outdir):
@@ -104,7 +138,7 @@ def plot_t_SNE(df, color_col, outdir):
     t_SNE_plt.figure.savefig(os.path.join(outdir, "t-SNE.{}.png".format(color_col)))
 
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
-def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir):
+def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir):
     pca_df = do_PCA(embedding_df)
 
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
@@ -124,7 +158,8 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
     df['ground_truth'] = df['ground_truth'].fillna('0')
 
     # Coloring using SPAdes pathes
-    # TODO
+    spades_colors = spades_coloring(gfa, outdir)
+    df = df.join(spades_colors, on='initial_node').fillna('0')
 
     # Coloring using persona graph clustering
     persona_colors = persona_coloring(p_clustering_tsv)
@@ -134,6 +169,7 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
     # plot_pca_3d(df, 'ground_truth')
     plot_pca_2d(df, 'persona_color', outdir)
     # plot_pca_3d(df, 'persona_color')
+    plot_pca_2d(df, 'PathName', outdir)
 
     X_subset, df_subset = get_subset(embedding_df, df, 10000)
     # pca_df = do_PCA(X_subset)
@@ -142,12 +178,14 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
 
     plot_t_SNE(df_subset, 'ground_truth', outdir)
     plot_t_SNE(df_subset, 'persona_color', outdir)
+    plot_t_SNE(df_subset, 'PathName', outdir)
 
 
 def main():
     from nxG2clusters import get_total_emb
 
     outdir = sys.argv[1]
+    gfa = sys.argv[2]
 
     persona_to_node_tsv = os.path.join(outdir, 'persona_graph_mapping.tsv')
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
@@ -157,7 +195,7 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, outdir)
+    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir)
 
 
 if __name__ == '__main__':
