@@ -7,6 +7,8 @@ import networkx as nx
 
 import pandas as pd
 
+from sklearn.preprocessing import StandardScaler
+
 from persona.persona import CreatePersonaGraph
 from persona.directed_persona import CreateDirectedPersonaGraph
 from persona.persona import PersonaOverlappingClustering
@@ -49,15 +51,19 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
     # and node features (len, cov, A, C, G, T)
     p_emb = pd.read_csv(p_emb_tsv, sep=' ', header=None, index_col=0, skiprows=1)
 
-    features = pd.read_csv(features_tsv, sep=' ',
+    features_df = pd.read_csv(features_tsv, sep=' ',
                            header=None, index_col=0, skiprows=1,
                            names=range(p_emb.shape[1], p_emb.shape[1] + 7))
+    # It will be helpful to convert each feature into z-scores
+    # (number of standard deviations from the mean) for comparability
+    scaled_features = StandardScaler().fit_transform(features_df.values)
+    scaled_features_df = pd.DataFrame(scaled_features, index=features_df.index, columns=features_df.columns)
 
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
                                   header=None, index_col=0,
                                   names=['initial_node'])
 
-    tot_emb_df = pd.concat([p_emb, persona_to_node], axis=1).join(features, on='initial_node')
+    tot_emb_df = pd.concat([p_emb, persona_to_node], axis=1).join(scaled_features_df, on='initial_node')
     tot_emb_df = tot_emb_df.drop(columns=['initial_node'])
 
     return tot_emb_df
