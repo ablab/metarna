@@ -19,7 +19,23 @@ from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 from gfa_parser import get_one_type_gfa, one_type_gfa_to_df
+from spaligner_parser import spaligner_to_df
 
+
+# Coloring using db
+# Transcript names define the cluster (i.e. color) of node and all its persons
+# Here we don't know how transcripts correspond to persons so can't identify their colors
+# because the input graph is regular
+def db_coloring(spaligner_tsv):
+    tsv_df = spaligner_to_df(spaligner_tsv)
+    # Split path column into multiple rows
+    new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
+                          index=tsv_df['sequence name']).stack()
+    new_df = new_df.reset_index([0, 'sequence name'])
+    new_df.columns = ['ground_truth', 'initial_node']
+    # Generate set of sequence names for each node with orientation
+    db_colors = new_df.groupby('initial_node')['ground_truth'].apply(set).apply(' '.join)
+    return db_colors
 
 def persona_coloring(persona_clustering_tsv):
     # Coloring using persona graph clustering
@@ -34,21 +50,6 @@ def persona_coloring(persona_clustering_tsv):
             persona_colors = persona_colors.append(curr, verify_integrity=True)
             num_cluster += 1
     return persona_colors
-
-# P       NODE_3_length_8008_cov_10.238095_g2_i0_1        509693+,39698+  *
-# P       NODE_4_length_7888_cov_11.161628_g3_i0_1        37773+  *
-# def p_line_to_path(line):
-#     fields = line.strip().split()
-#     t_name = fields[1] + '+'
-#     nodes = fields[2].split(',')
-#     return t_name, nodes
-
-# def p_line_to_rc_path(line):
-#     rc_dict = {'+': '-', '-': '+'}
-#     fields = line.strip().split()
-#     rc_t_name = fields[1] + '-'
-#     rc_nodes = [node[:-1] + rc_dict[node[-1]] for node in reversed(fields[2].split(','))]
-#     return rc_t_name, rc_nodes
 
 # Coloring using SPAdes gfa
 # Transcript (path) names define the cluster (i.e. color) of node and all its persons
@@ -166,20 +167,16 @@ def plot_umap(df, color_col, n_neighbors, outdir):
     umap_plt.figure.savefig(os.path.join(outdir, "umap.{}.{}.png".format(color_col, n_neighbors)))
 
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
-def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir):
+def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_tsv, p_clustering_tsv, gfa, outdir):
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
                                   header=None, index_col=0,
                                   names=['initial_node'])
     df = pd.concat([embedding_df, persona_to_node], axis=1)
 
     # Coloring using db
-    # Transcript names define the cluster (i.e. color) of node and all its persons
-    # Here we don't know how transcripts correspond to persons so can't identify their colors
-    # because the input graph is regular
-    node_colors = pd.read_csv(node_to_db_tsv, sep='\t', header=None,
-                              index_col=0, names=['ground_truth'])
+    node_colors = db_coloring(spaligner_tsv)
     df = df.join(node_colors, on='initial_node')
-    # colorize nodes without pathes in red
+    # Colorize nodes without pathes in red
     df['ground_truth'] = df['ground_truth'].fillna('0')
 
     # Coloring using SPAdes pathes

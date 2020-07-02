@@ -100,29 +100,6 @@ def get_X(nodes, out_tsv):
             fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
-def set_node_labels(G, tsv, node_to_db_tsv):
-    tsv_df = spaligner_parser.spaligner_to_df(tsv)
-
-    # Split path column into multiple rows
-    new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
-                          index=tsv_df['sequence name']).stack()
-    new_df = new_df.reset_index([0, 'sequence name'])
-    new_df.columns = ['sequence name', 'node']
-
-    # Generate set of sequence names for each node with orientation
-    grouped_df = new_df.groupby('node')['sequence name'].apply(set).reset_index()
-
-    grouped_dict = grouped_df.set_index('node')['sequence name'].to_dict()
-    nx.set_node_attributes(G, grouped_dict, name='label')
-
-    # print(nx.get_node_attributes(G,'label'))
-
-    with open(node_to_db_tsv, 'w') as fin:
-        for node, transcripts in grouped_dict.items():
-            fin.write(node + '\t' + ' '.join(transcripts) + '\n')
-
-    return G
-
 # Path existence between nodes in gfa graph means edge in friendship graph
 # Nodes connected in friendship graph more likely to belong one gene (like social community)
 def get_friendships(G):
@@ -160,10 +137,6 @@ def main():
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = get_X(G.nodes, features_tsv)
-
-    # Set labels for nodes
-    node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
-    G = set_node_labels(G, tsv, node_to_db_tsv)
 
     fG = get_friendship_G(G, get_friendships(G))
 

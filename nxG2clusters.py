@@ -83,9 +83,6 @@ def main():
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = gfa_parser.get_X(G.nodes, features_tsv)
-    # Set labels for nodes
-    node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
-    G = gfa_parser.set_node_labels(G, spaligner_tsv, node_to_db_tsv)
 
     fG = gfa_parser.get_friendship_G(G, gfa_parser.get_friendships(G))
 
@@ -128,7 +125,7 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir)
+    visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv, spaligner_tsv, p_clustering_tsv, gfa, outdir)
 
     spaligner_clustering_tsv = os.path.join(outdir, 'spaligner_clustering.tsv')
     spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv, spaligner_clustering_tsv)
