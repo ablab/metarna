@@ -114,7 +114,7 @@ def main():
 
     print('Embedding...')
     embedding = do_embedding(G, persona_graph, persona_id_mapping,
-                             embedding_dim=64, walk_length=10, num_walks_node=40,
+                             embedding_dim=16, walk_length=10, num_walks_node=40,
                              constraint_learning_rate_scaling_factor=0.1, iterations=10,
                              seed=1)
 

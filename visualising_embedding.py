@@ -10,6 +10,7 @@ import pandas as pd
 
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
+from umap import UMAP
 
 import matplotlib.pyplot as plt
 
@@ -19,17 +20,6 @@ import seaborn as sns
 
 from gfa_parser import get_one_type_gfa, one_type_gfa_to_df
 
-
-def do_PCA(X):
-    pca = PCA(n_components=3)
-    pca_result = pca.fit_transform(X.values)
-
-    pca_df = pd.DataFrame({'pca_1': pca_result[:, 0],
-                           'pca_2': pca_result[:, 1],
-                           'pca_3': pca_result[:, 2]},
-                          index=X.index)
-    print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
-    return pca_df
 
 def persona_coloring(persona_clustering_tsv):
     # Coloring using persona graph clustering
@@ -76,6 +66,17 @@ def spades_coloring(gfa, outdir):
     spades_colors = pd.concat([colors, rc_colors], axis=0).set_index('SegmentNames')
     spades_colors = spades_colors.groupby('SegmentNames')['PathName'].apply(' '.join)
     return spades_colors
+
+def do_PCA(X):
+    pca = PCA(n_components=3)
+    pca_result = pca.fit_transform(X.values)
+
+    pca_df = pd.DataFrame({'pca_1': pca_result[:, 0],
+                           'pca_2': pca_result[:, 1],
+                           'pca_3': pca_result[:, 2]},
+                          index=X.index)
+    print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
+    return pca_df
 
 # PCA
 def plot_pca_2d(df, color_col, outdir):
@@ -137,15 +138,39 @@ def plot_t_SNE(df, color_col, outdir):
     )
     t_SNE_plt.figure.savefig(os.path.join(outdir, "t-SNE.{}.png".format(color_col)))
 
+def do_umap(X, n_neighbors):
+    time_start = time.time()
+
+    umap = UMAP(n_neighbors=n_neighbors, verbose=True)
+    umap_result = umap.fit_transform(X.values)
+
+    print('UMAP done! Time elapsed: {} seconds'.format(time.time() - time_start))
+
+    umap_df = pd.DataFrame({'umap_{}_1'.format(n_neighbors): umap_result[:, 0],
+                            'umap_{}_2'.format(n_neighbors): umap_result[:, 1]},
+                           index=X.index)
+    return umap_df
+
+def plot_umap(df, color_col, n_neighbors, outdir):
+    plt.figure(figsize=(16, 10))
+    umap_plt = sns.scatterplot(
+        x="umap_{}_1".format(n_neighbors),
+        y="umap_{}_2".format(n_neighbors),
+        hue=color_col,
+        palette=sns.color_palette("hls", df[color_col].nunique()),
+        data=df,
+        legend=None,
+        # alpha=0.3
+    )
+    plt.title('n_neighbors = {}'.format(n_neighbors))
+    umap_plt.figure.savefig(os.path.join(outdir, "umap.{}.{}.png".format(color_col, n_neighbors)))
+
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
 def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir):
-    pca_df = do_PCA(embedding_df)
-
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
                                   header=None, index_col=0,
                                   names=['initial_node'])
-
-    df = pd.concat([embedding_df, pca_df, persona_to_node], axis=1)
+    df = pd.concat([embedding_df, persona_to_node], axis=1)
 
     # Coloring using db
     # Transcript names define the cluster (i.e. color) of node and all its persons
@@ -165,20 +190,32 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
     persona_colors = persona_coloring(p_clustering_tsv)
     df = pd.concat([df, persona_colors.to_frame(name='persona_color')], axis=1)
 
+    # PCA
+    pca_df = do_PCA(embedding_df)
+    df = pd.concat([df, pca_df], axis=1)
     plot_pca_2d(df, 'ground_truth', outdir)
     # plot_pca_3d(df, 'ground_truth')
     plot_pca_2d(df, 'persona_color', outdir)
     # plot_pca_3d(df, 'persona_color')
     plot_pca_2d(df, 'PathName', outdir)
 
+    # T-SNE
     X_subset, df_subset = get_subset(embedding_df, df, 10000)
     # pca_df = do_PCA(X_subset)
     tsne_df = do_t_SNE(X_subset)
     df_subset = pd.concat([df_subset, tsne_df], axis=1)
-
     plot_t_SNE(df_subset, 'ground_truth', outdir)
     plot_t_SNE(df_subset, 'persona_color', outdir)
     plot_t_SNE(df_subset, 'PathName', outdir)
+
+    # UMAP
+    # plot_umap(df_subset, 'ground_truth', 15, outdir)
+    # plot_umap(df_subset, 'persona_color', 15, outdir)
+    for n in (2, 5, 10, 20, 50, 100, 200):
+        umap_df = do_umap(X_subset, n)
+        df_subset = pd.concat([df_subset, umap_df], axis=1)
+        plot_umap(df_subset, 'PathName', n, outdir)
+        plot_umap(df_subset, 'ground_truth', n, outdir)
 
 
 def main():
