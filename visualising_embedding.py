@@ -64,7 +64,7 @@ def spades_coloring(gfa, outdir):
     # since pathes (and links) in gfa includes only one of them (forward or rc)
     rc_colors = colors.applymap(lambda s: s.translate(str.maketrans({'+': '-', '-': '+'})))
     spades_colors = pd.concat([colors, rc_colors], axis=0).set_index('SegmentNames')
-    spades_colors = spades_colors.groupby('SegmentNames')['PathName'].apply(' '.join)
+    spades_colors = spades_colors.groupby('SegmentNames')['PathName'].apply(set).apply(' '.join)
     return spades_colors
 
 def do_PCA(X):
