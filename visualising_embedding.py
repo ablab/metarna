@@ -190,6 +190,8 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, node_to_db_tsv, p_clu
     persona_colors = persona_coloring(p_clustering_tsv)
     df = pd.concat([df, persona_colors.to_frame(name='persona_color')], axis=1)
 
+    sns.pairplot(df, vars=embedding_df.keys()).savefig(os.path.join(outdir, "pairplot.png"))
+
     # PCA
     pca_df = do_PCA(embedding_df)
     df = pd.concat([df, pca_df], axis=1)
