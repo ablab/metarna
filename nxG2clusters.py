@@ -71,7 +71,8 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
 def main():
     gfa = sys.argv[1]
     spaligner_tsv = sys.argv[2]
-    outdir = sys.argv[3]
+    spaligner_long_reads_tsv = sys.argv[3]
+    outdir = sys.argv[4]
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -84,7 +85,9 @@ def main():
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = gfa_parser.get_X(G.nodes, features_tsv)
 
-    fG = gfa_parser.get_friendship_G(G, gfa_parser.get_friendships(G))
+    fG = G.to_undirected()
+    # fG.add_edges_from(gfa_parser.get_friendships(G))
+    fG.add_edges_from(gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv))
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
@@ -110,7 +113,7 @@ def main():
             outfile.write('{} {}\n'.format(persona_node, original_node))
 
     print('Embedding...')
-    embedding = do_embedding(G, persona_graph, persona_id_mapping,
+    embedding = do_embedding(fG, persona_graph, persona_id_mapping,
                              embedding_dim=16, walk_length=10, num_walks_node=40,
                              constraint_learning_rate_scaling_factor=0.1, iterations=10,
                              seed=1)

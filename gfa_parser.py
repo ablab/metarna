@@ -11,7 +11,8 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
-import spaligner_parser
+from spaligner_parser import spaligner_to_df
+
 
 def get_one_type_gfa(gfa, type, outdir):
     one_type_gfa = os.path.join(outdir, '{}.gfa'.format(type))
@@ -104,20 +105,23 @@ def get_X(nodes, out_tsv):
 # Nodes connected in friendship graph more likely to belong one gene (like social community)
 def get_friendships(G):
     start = time.time()
-    friendships = []
-    for u in G.nodes:
-        for v in G.nodes:
-            if nx.algorithms.shortest_paths.generic.has_path(G, u, v):
-                friendships.append((u, v))
+    friendships = [(u, v) for u in G.nodes for v in G.nodes
+                   if nx.algorithms.shortest_paths.generic.has_path(G, u, v)]
     end = time.time()
     print('Elapsed time on friendship graph construction: ', (end - start) * 1.0 / 60 / 60)
     return friendships
 
-def get_friendship_G(G, friendships):
-    fG = nx.Graph()
-    fG.add_nodes_from(G.nodes, data=True)
-    fG.add_edges_from(friendships)
-    return fG
+def get_friendships_from_long_reads(spaligner_tsv):
+    friendships = []
+    start = time.time()
+    tsv_df = spaligner_to_df(spaligner_tsv)
+    for path_str in tsv_df['path of the alignment']:
+        path = path_str.replace(';', ',').split(',')
+        friendships += [(u, v) for i, u in enumerate(path)
+                        for j, v in enumerate(path) if i < j]
+    end = time.time()
+    print('Elapsed time on long reads graph construction: ', (end - start) * 1.0 / 60 / 60)
+    return friendships
 
 def main():
     # SPAdes output
@@ -137,8 +141,6 @@ def main():
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = get_X(G.nodes, features_tsv)
-
-    fG = get_friendship_G(G, get_friendships(G))
 
 
 if __name__ == '__main__':
