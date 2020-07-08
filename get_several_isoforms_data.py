@@ -28,10 +28,10 @@ for seqname in names:
     commands.append('bedtools bamtofastq -i {name}.sortedByName.bam -fq left.{name}.fastq -fq2 right.{name}.fastq'.format(name=seqname))
 
 lefts = ['left.{}.fastq'.format(name) for name in names]
-commands.append('cat {} > left.{}.fastq'.format(' '.join(lefts), '_'.join(names)))
+commands.append('cat {} > left.{}.fastq'.format(' '.join(lefts), 'isoforms_' + str(len(names))))
 
 rights = ['right.{}.fastq'.format(name) for name in names]
-commands.append('cat {} > right.{}.fastq'.format(' '.join(rights), '_'.join(names)))
+commands.append('cat {} > right.{}.fastq'.format(' '.join(rights), 'isoforms_' + str(len(names))))
 
 for cmd in commands:
     print(cmd + ':\n')
