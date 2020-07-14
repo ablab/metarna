@@ -1,3 +1,5 @@
+# python get_t_names_by_gene.py Homo_sapiens.GRCh38.82.cleared.gtf ENSG00000230021
+
 import sys
 
 gtf = sys.argv[1]
