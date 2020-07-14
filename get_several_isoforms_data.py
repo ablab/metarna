@@ -17,6 +17,8 @@ commands = []
 
 names_txt = sys.argv[1]
 
+filename = names_txt.split('.')[0]
+
 with open(names_txt, 'r') as fin:
     names = fin.read().splitlines()
 print('seqnames: {}\n'.format(names))
@@ -28,10 +30,10 @@ for seqname in names:
     commands.append('bedtools bamtofastq -i {name}.sortedByName.bam -fq left.{name}.fastq -fq2 right.{name}.fastq'.format(name=seqname))
 
 lefts = ['left.{}.fastq'.format(name) for name in names]
-commands.append('cat {} > left.{}.fastq'.format(' '.join(lefts), 'isoforms_' + str(len(names))))
+commands.append('cat {} > left.{}.fastq'.format(' '.join(lefts), filename))
 
 rights = ['right.{}.fastq'.format(name) for name in names]
-commands.append('cat {} > right.{}.fastq'.format(' '.join(rights), 'isoforms_' + str(len(names))))
+commands.append('cat {} > right.{}.fastq'.format(' '.join(rights), filename))
 
 for cmd in commands:
     print(cmd + ':\n')
