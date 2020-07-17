@@ -5,6 +5,8 @@ import os
 
 import networkx as nx
 
+import matplotlib.pyplot as plt
+
 import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
@@ -68,6 +70,16 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
 
     return tot_emb_df
 
+def plot_graph_components(G, outdir, name='G', n=4):
+    options = {'with_labels': True,
+               'pos': nx.spring_layout(G)}
+    largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
+    for i, component in enumerate(largest_components):
+        nx.draw(component, **options)
+        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(name, i)))
+        plt.clf()
+
+
 def main():
     gfa = sys.argv[1]
     spaligner_tsv = sys.argv[2]
@@ -86,8 +98,12 @@ def main():
     X = gfa_parser.get_X(G.nodes, features_tsv)
 
     fG = G.to_undirected()
+    plot_graph_components(fG, outdir, n=4)
+
     # fG.add_edges_from(gfa_parser.get_friendships(G))
+
     fG.add_edges_from(gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv))
+    plot_graph_components(fG, outdir, name='fG', n=2)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
