@@ -32,7 +32,7 @@ def remove_regular_model(in_path, out_path):
     with open(in_path, 'r') as fin:
         for line in fin:
             node = line.split()[0]
-            if not ('+' in node or '-' in node):
+            if '+_' in node or '-_' in node:
                 fout.write(line)
 
     fout.close()
@@ -51,7 +51,7 @@ def get_tst_G(G):
 def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
     # concatenate structural features (persona graph embedding)
     # and node features (len, cov, A, C, G, T)
-    p_emb = pd.read_csv(p_emb_tsv, sep=' ', header=None, index_col=0, skiprows=1)
+    p_emb = pd.read_csv(p_emb_tsv, sep=' ', header=None, index_col=0)
 
     features_df = pd.read_csv(features_tsv, sep=' ',
                            header=None, index_col=0, skiprows=1,

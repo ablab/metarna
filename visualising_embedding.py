@@ -45,7 +45,7 @@ def persona_coloring(persona_clustering_tsv):
     with open(persona_clustering_tsv, 'r') as fin:
         num_cluster = 0
         for line in fin:
-            personas = [int(p) for p in line.split()]
+            personas = line.split()
             curr = pd.Series([num_cluster] * len(personas), index=personas)
             persona_colors = persona_colors.append(curr, verify_integrity=True)
             num_cluster += 1
