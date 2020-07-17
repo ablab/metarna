@@ -72,7 +72,8 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
 
 def plot_graph_components(G, outdir, name='G', n=4):
     options = {'with_labels': True,
-               'pos': nx.spring_layout(G)}
+               'pos': nx.spring_layout(G),
+               'font_size': 5}
     largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
     for i, component in enumerate(largest_components):
         nx.draw(component, **options)
