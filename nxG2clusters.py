@@ -107,6 +107,7 @@ def main():
     plot_graph_components(fG, outdir, name='fG', n=2)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
+    plot_graph_components(persona_graph, outdir, name='persona', n=4)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 
