@@ -11,7 +11,7 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
-from spaligner_parser import spaligner_to_df
+from spaligner_parser import spaligner_to_df_not_ss
 
 
 def get_one_type_gfa(gfa, type, outdir):
@@ -111,10 +111,10 @@ def get_friendships(G):
     print('Elapsed time on friendship graph construction: ', (end - start) * 1.0 / 60 / 60)
     return friendships
 
-def get_friendships_from_long_reads(spaligner_tsv):
+def get_friendships_from_long_reads(spaligner_tsv, G):
     friendships = []
     start = time.time()
-    tsv_df = spaligner_to_df(spaligner_tsv)
+    tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     for path_str in tsv_df['path of the alignment']:
         path = path_str.replace(';', ',').split(',')
         friendships += [(u, v) for i, u in enumerate(path)

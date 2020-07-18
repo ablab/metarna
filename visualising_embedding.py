@@ -18,16 +18,16 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import seaborn as sns
 
-from gfa_parser import get_one_type_gfa, one_type_gfa_to_df
-from spaligner_parser import spaligner_to_df
+from gfa_parser import gfa_to_G, get_one_type_gfa, one_type_gfa_to_df
+from spaligner_parser import spaligner_to_df_not_ss
 
 
 # Coloring using db
 # Transcript names define the cluster (i.e. color) of node and all its persons
 # Here we don't know how transcripts correspond to persons so can't identify their colors
 # because the input graph is regular
-def db_coloring(spaligner_tsv):
-    tsv_df = spaligner_to_df(spaligner_tsv)
+def db_coloring(spaligner_tsv, G):
+    tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     # Split path column into multiple rows
     new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
                           index=tsv_df['sequence name']).stack()
@@ -167,14 +167,14 @@ def plot_umap(df, color_col, n_neighbors, outdir):
     umap_plt.figure.savefig(os.path.join(outdir, "umap.{}.{}.png".format(color_col, n_neighbors)))
 
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
-def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_tsv, p_clustering_tsv, gfa, outdir):
+def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_tsv, p_clustering_tsv, gfa, G, outdir):
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
                                   header=None, index_col=0,
                                   names=['initial_node'])
     df = pd.concat([embedding_df, persona_to_node], axis=1)
 
     # Coloring using db
-    node_colors = db_coloring(spaligner_tsv)
+    node_colors = db_coloring(spaligner_tsv, G)
     df = df.join(node_colors, on='initial_node')
     # Colorize nodes without pathes in red
     df['ground_truth'] = df['ground_truth'].fillna('0')
@@ -231,7 +231,7 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, outdir)
+    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, gfa_to_G(gfa), outdir)
 
 
 if __name__ == '__main__':

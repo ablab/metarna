@@ -5,7 +5,7 @@ import pandas as pd
 import csv
 
 import spaligner_parser
-
+from gfa_parser import gfa_to_G
 
 def tsv_to_sets(tsv):
     clusters = set()
@@ -67,9 +67,16 @@ def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_ts
 
 
 def main():
-    outdir = os.path.join(sys.argv[3])
-    spaligner_clustering_tsv = spaligner_parser.spaligner_to_clustering_tsv(sys.argv[2], os.path.join(outdir, 'spaligner_clustering.tsv'))
-    evaluate_clustering(sys.argv[1], spaligner_clustering_tsv)
+    clustering_tsv = sys.argv[1]
+    spaligner_tsv = sys.argv[2]
+    gfa = sys.argv[3]
+    outdir = os.path.join(sys.argv[4])
+
+    spaligner_clustering_tsv = \
+        spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv,
+                                                     os.path.join(outdir, 'spaligner_clustering.tsv'),
+                                                     gfa_to_G(gfa))
+    evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
 
 
 if __name__ == '__main__':
