@@ -70,12 +70,13 @@ def main():
     clustering_tsv = sys.argv[1]
     spaligner_tsv = sys.argv[2]
     gfa = sys.argv[3]
-    outdir = os.path.join(sys.argv[4])
+    k = int(sys.argv[4])
+    outdir = os.path.join(sys.argv[5])
 
     spaligner_clustering_tsv = \
         spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv,
                                                      os.path.join(outdir, 'spaligner_clustering.tsv'),
-                                                     gfa_to_G(gfa))
+                                                     gfa_to_G(gfa, k))
     evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
 
 

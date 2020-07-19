@@ -6,7 +6,7 @@ from Bio.Seq import Seq
 def spaligner_to_df(tsv):
     tsv_df = pd.read_csv(tsv, sep="\t", names=['sequence name',
                                                'start position of alignment on sequence',
-                                               'end position of  alignment on sequence',
+                                               'end position of alignment on sequence',
                                                'start position of alignment on the first edge of the Path',
                                                'end position of alignment on the last edge of the Path',
                                                'sequence length',
@@ -29,8 +29,16 @@ def spaligner_to_df_not_ss(tsv, G):
     tsv_df = spaligner_to_df(tsv)
     tsv_df_rc = tsv_df.copy()
     tsv_df_rc['sequence name'] = tsv_df['sequence name'].astype(str) + '_rc'
-    tsv_df_rc['start position of alignment on the first edge of the Path'] = '*'
-    tsv_df_rc['end position of alignment on the last edge of the Path'] = '*'
+
+    start_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[0]
+    end_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[-1]
+    s_pos = tsv_df['start position of alignment on sequence'].str.split(',').str[0].astype(int)
+    e_pos = tsv_df['end position of alignment on sequence'].str.split(',').str[-1].astype(int)
+    s_len = start_node.apply(lambda x: G.nodes[x]['len']).astype(int)
+    e_len = end_node.apply(lambda x: G.nodes[x]['len']).astype(int)
+    tsv_df_rc['start position of alignment on the first edge of the Path'] = e_len - e_pos - G.graph['k']
+    tsv_df_rc['end position of alignment on the last edge of the Path'] = s_len - s_pos - G.graph['k']
+
     tsv_df_rc['path of the alignment'] = \
         tsv_df['path of the alignment'].apply(rc_smth_of_the_alignment)
     tsv_df_rc['lengths of the alignment on each edge of the Path respectively'] = \

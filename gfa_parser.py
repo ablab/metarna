@@ -53,8 +53,8 @@ def line_to_rc_edge(line):
     attr = {'cigar': fields[5]}
     return u, v, attr
 
-def gfa_to_G(gfa):
-    G = nx.DiGraph()
+def gfa_to_G(gfa, kmer_size):
+    G = nx.DiGraph(k=kmer_size)
     with open(gfa, 'r') as fin:
         for line in fin:
             record_type = line[0]
@@ -126,14 +126,14 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
 def main():
     # SPAdes output
     gfa = sys.argv[1]
-
     # SPAligner output
     tsv = sys.argv[2]
-
-    outdir = sys.argv[3]
+    # kmer size for graph construction
+    k = int(sys.argv[3])
+    outdir = sys.argv[4]
 
     # Get graph from gfa file
-    G = gfa_to_G(gfa)
+    G = gfa_to_G(gfa, k)
 
     # Get Adjacency matrix
     A = get_A(G)

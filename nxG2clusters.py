@@ -85,12 +85,13 @@ def main():
     gfa = sys.argv[1]
     spaligner_tsv = sys.argv[2]
     spaligner_long_reads_tsv = sys.argv[3]
-    outdir = sys.argv[4]
+    k = int(sys.argv[4])
+    outdir = sys.argv[5]
 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    G = gfa_parser.gfa_to_G(gfa)
+    G = gfa_parser.gfa_to_G(gfa, k)
 
     # G = get_tst_G(G)
 

@@ -222,6 +222,7 @@ def main():
 
     outdir = sys.argv[1]
     gfa = sys.argv[2]
+    k = int(sys.argv[3])
 
     persona_to_node_tsv = os.path.join(outdir, 'persona_graph_mapping.tsv')
     node_to_db_tsv = os.path.join(outdir, 'node_to_db.tsv')
@@ -231,7 +232,7 @@ def main():
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
-    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, gfa_to_G(gfa), outdir)
+    visualize_embedding(tot_emb_df, persona_to_node_tsv, node_to_db_tsv, p_clustering_tsv, gfa, gfa_to_G(gfa, k), outdir)
 
 
 if __name__ == '__main__':
