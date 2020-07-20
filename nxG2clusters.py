@@ -112,7 +112,7 @@ def main():
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 
-    clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 0)
+    clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 2)
 
     p_clustering_tsv = os.path.join(outdir, 'persona_clustering.tsv')
     with open(p_clustering_tsv, 'w') as outfile:
