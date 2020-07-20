@@ -179,7 +179,7 @@ def CreateEgonets(graph):
       if neighbor not in completed_nodes:
         not_removed.append(neighbor)
     for pos_u, u in enumerate(not_removed):
-      for v  in not_removed[pos_u+1:]:
+      for v in not_removed[pos_u + 1:]:
         if (u, v) in edge_set or (v, u) in edge_set:
           ego_egonet_map[node].add_edge(u, v)
           ego_egonet_map[u].add_edge(node, v)

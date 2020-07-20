@@ -26,8 +26,8 @@ from spaligner_parser import spaligner_to_df_not_ss
 # Transcript names define the cluster (i.e. color) of node and all its persons
 # Here we don't know how transcripts correspond to persons so can't identify their colors
 # because the input graph is regular
-def db_coloring(spaligner_tsv, G):
-    tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
+def db_coloring(spaligner_ground_truth_tsv, G):
+    tsv_df = spaligner_to_df_not_ss(spaligner_ground_truth_tsv, G)
     # Split path column into multiple rows
     new_df = pd.DataFrame(tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').tolist(),
                           index=tsv_df['sequence name']).stack()
@@ -167,14 +167,14 @@ def plot_umap(df, color_col, n_neighbors, outdir):
     umap_plt.figure.savefig(os.path.join(outdir, "umap.{}.{}.png".format(color_col, n_neighbors)))
 
 # persona_embedding.tsv persona_graph_mapping.tsv node_to_db.tsv persona_clustering.tsv outdir
-def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_tsv, p_clustering_tsv, gfa, G, outdir):
+def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_ground_truth_tsv, p_clustering_tsv, gfa, G, outdir):
     persona_to_node = pd.read_csv(persona_to_node_tsv, sep=' ',
                                   header=None, index_col=0,
                                   names=['initial_node'])
     df = pd.concat([embedding_df, persona_to_node], axis=1)
 
     # Coloring using db
-    node_colors = db_coloring(spaligner_tsv, G)
+    node_colors = db_coloring(spaligner_ground_truth_tsv, G)
     df = df.join(node_colors, on='initial_node')
     # Colorize nodes without pathes in red
     df['ground_truth'] = df['ground_truth'].fillna('0')

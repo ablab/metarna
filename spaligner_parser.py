@@ -32,8 +32,8 @@ def spaligner_to_df_not_ss(tsv, G):
 
     start_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[0]
     end_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[-1]
-    s_pos = tsv_df['start position of alignment on sequence'].str.split(',').str[0].astype(int)
-    e_pos = tsv_df['end position of alignment on sequence'].str.split(',').str[-1].astype(int)
+    s_pos = tsv_df['start position of alignment on sequence'].astype(str).str.split(',').str[0].astype(int)
+    e_pos = tsv_df['end position of alignment on sequence'].astype(str).str.split(',').str[-1].astype(int)
     s_len = start_node.apply(lambda x: G.nodes[x]['len']).astype(int)
     e_len = end_node.apply(lambda x: G.nodes[x]['len']).astype(int)
     tsv_df_rc['start position of alignment on the first edge of the Path'] = e_len - e_pos - G.graph['k']

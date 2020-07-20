@@ -83,7 +83,7 @@ def plot_graph_components(G, outdir, name='G', n=4):
 
 def main():
     gfa = sys.argv[1]
-    spaligner_tsv = sys.argv[2]
+    spaligner_ground_truth_tsv = sys.argv[2]
     spaligner_long_reads_tsv = sys.argv[3]
     k = int(sys.argv[4])
     outdir = sys.argv[5]
@@ -148,12 +148,12 @@ def main():
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
     visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv,
-                                              spaligner_tsv, p_clustering_tsv,
+                                              spaligner_ground_truth_tsv, p_clustering_tsv,
                                               gfa, fG, outdir)
 
-    spaligner_clustering_tsv = os.path.join(outdir, 'spaligner_clustering.tsv')
-    spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv, spaligner_clustering_tsv, fG)
-    evaluating_clustering.evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
+    ground_truth_clustering_tsv = os.path.join(outdir, 'ground_truth_clustering.tsv')
+    spaligner_parser.spaligner_to_clustering_tsv(spaligner_ground_truth_tsv, ground_truth_clustering_tsv, fG)
+    evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv)
 
 
 if __name__ == '__main__':
