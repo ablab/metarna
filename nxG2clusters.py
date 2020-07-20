@@ -23,8 +23,8 @@ import visualising_embedding
 import evaluating_clustering
 
 
-local_clustering_fn = _CLUSTERING_FN['label_prop']
-global_clustering_fn = _CLUSTERING_FN['label_prop']
+local_clustering_fn = _CLUSTERING_FN['modularity']
+global_clustering_fn = _CLUSTERING_FN['modularity']
 
 def remove_regular_model(in_path, out_path):
     fout = open(out_path, 'w')
