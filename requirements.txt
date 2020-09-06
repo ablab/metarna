@@ -4,3 +4,9 @@ networkx==2.2
 boltons==19.1.0
 gensim==0.13.2
 scipy==0.15.1
+
+# clear PYTHONPATH = otherwise 2.7 is used
+#     export PYTHONPATH=
+# numpy==1.18.5 - not for python 3.5 - install using pip
+# absl-py==0.6.1 - not for python 3.5 - install using pip
+# gensim==0.13.2 - no version 0.13.2 - install using pip
