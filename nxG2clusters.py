@@ -6,6 +6,7 @@ import os
 import networkx as nx
 
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 import pandas as pd
 
