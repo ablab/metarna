@@ -136,7 +136,7 @@ def main():
     embedding = do_embedding(fG, persona_graph, persona_id_mapping,
                              embedding_dim=16, walk_length=10, num_walks_node=40,
                              constraint_learning_rate_scaling_factor=0.1, iterations=10,
-                             seed=1)
+                             seed=42)
 
     # output embedding
     p_emb_tsv = os.path.join(outdir, 'persona_embedding.tsv')
@@ -158,4 +158,9 @@ def main():
 
 
 if __name__ == '__main__':
+    import random
+    random.seed(42)
+    import numpy as np
+    np.random.seed(42)
+
     main()
