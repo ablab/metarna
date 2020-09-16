@@ -100,7 +100,8 @@ def main():
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = gfa_parser.get_X(G.nodes, features_tsv)
 
-    fG = G.to_undirected()
+    # fG = G.to_undirected()
+    fG = G
     plot_graph_components(fG, outdir, n=4)
 
     # fG.add_edges_from(gfa_parser.get_friendships(G))

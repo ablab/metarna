@@ -54,7 +54,7 @@ def line_to_rc_edge(line):
     return u, v, attr
 
 def gfa_to_G(gfa, kmer_size):
-    G = nx.DiGraph(k=kmer_size)
+    G = nx.OrderedGraph(k=kmer_size)
     with open(gfa, 'r') as fin:
         for line in fin:
             record_type = line[0]
