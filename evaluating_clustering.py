@@ -55,7 +55,9 @@ def F1_for_clustering(reconstructed_set, ground_truth_set):
     F1 /= len(reconstructed_set)
     return F1
 
-def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_tsv):
+def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_tsv, outdir):
+    short_report_txt = os.path.join(outdir, 'short_report.txt')
+
     reconstructed_clusters = tsv_to_sets(reconstructed_clustering_tsv)
     ground_truth_clusters = tsv_to_sets(ground_truth_clustering_tsv)
 
@@ -64,6 +66,10 @@ def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_ts
 
     F1 = F1_for_clustering(reconstructed_clusters, ground_truth_clusters)
     print('F1 score: %.3f' % F1)
+
+    with open(short_report_txt, 'w') as fout:
+        fout.write('Jaccard similarity: %.3f\n' % J)
+        fout.write('F1 score: %.3f\n' % F1)
 
 
 def main():

@@ -155,7 +155,7 @@ def main():
 
     ground_truth_clustering_tsv = os.path.join(outdir, 'ground_truth_clustering.tsv')
     spaligner_parser.spaligner_to_clustering_tsv(spaligner_ground_truth_tsv, ground_truth_clustering_tsv, fG)
-    evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv)
+    evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv, outdir)
 
 
 if __name__ == '__main__':
