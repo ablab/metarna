@@ -73,11 +73,11 @@ import itertools
 from absl import app
 from boltons.queueutils import HeapPriorityQueue
 import networkx as nx
-import networkx.algorithms.community.label_propagation as label_prop
+# import networkx.algorithms.community.label_propagation as label_prop
 
 
 def CreatePersonaGraph(graph,
-                       clustering_fn=label_prop.label_propagation_communities,
+                       clustering_fn,
                        persona_start_id=0):
   """The function creates the persona graph.
 
