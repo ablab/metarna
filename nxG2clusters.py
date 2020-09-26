@@ -96,6 +96,8 @@ def main():
 
     # G = get_tst_G(G)
 
+    # G = gfa_parser.filter_G_by_degree(G)
+
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = gfa_parser.get_X(G.nodes, features_tsv)

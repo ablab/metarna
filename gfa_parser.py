@@ -86,6 +86,11 @@ def gfa_to_G(gfa, kmer_size):
                 G.add_edge(u, v, **attr)
     return G
 
+def filter_G_by_degree(G, filtered_degree=2):
+    removed = [node for node, degree in dict(G.degree()).items() if degree < filtered_degree]
+    G.remove_nodes_from(removed)
+    return G
+
 def get_A(G):
     A = nx.adjacency_matrix(G)
     print(A.todense())
