@@ -102,17 +102,21 @@ def main():
     features_tsv = os.path.join(outdir, 'features.tsv')
     X = gfa_parser.get_X(G.nodes, features_tsv)
 
+    graphs_outdir = os.path.join(outdir, 'graphs_out')
+    if not os.path.exists(graphs_outdir):
+        os.mkdir(graphs_outdir)
+
     # fG = G.to_undirected()
     fG = G
-    plot_graph_components(fG, outdir, n=4)
+    plot_graph_components(fG, graphs_outdir, n=4)
 
     # fG.add_edges_from(gfa_parser.get_friendships(G))
 
     fG.add_edges_from(gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv, fG))
-    plot_graph_components(fG, outdir, name='fG', n=4)
+    plot_graph_components(fG, graphs_outdir, name='fG', n=4)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
-    plot_graph_components(persona_graph, outdir, name='persona', n=10)
+    plot_graph_components(persona_graph, graphs_outdir, name='persona', n=10)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 
