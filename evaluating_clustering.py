@@ -83,7 +83,7 @@ def main():
         spaligner_parser.spaligner_to_clustering_tsv(spaligner_tsv,
                                                      os.path.join(outdir, 'spaligner_clustering.tsv'),
                                                      gfa_to_G(gfa, k))
-    evaluate_clustering(clustering_tsv, spaligner_clustering_tsv)
+    evaluate_clustering(clustering_tsv, spaligner_clustering_tsv, outdir)
 
 
 if __name__ == '__main__':
