@@ -142,18 +142,22 @@ def main():
                              seed=42)
 
     # output embedding
-    p_emb_tsv = os.path.join(outdir, 'persona_embedding.tsv')
+    emb_outdir = os.path.join(outdir, 'embedding_out')
+    if not os.path.exists(emb_outdir):
+        os.mkdir(emb_outdir)
+
+    p_emb_tsv = os.path.join(emb_outdir, 'persona_embedding.tsv')
     embedding['persona_model'].save_word2vec_format(open(p_emb_tsv, 'wb'))
-    p_emb_tsv = remove_regular_model(p_emb_tsv, os.path.join(outdir, 'persona_embedding.clear.tsv'))
+    p_emb_tsv = remove_regular_model(p_emb_tsv, os.path.join(emb_outdir, 'persona_embedding.clear.tsv'))
 
     # optional output
-    embedding['regular_model'].save_word2vec_format(open(os.path.join(outdir, 'embedding_prior.tsv'), 'wb'))
+    embedding['regular_model'].save_word2vec_format(open(os.path.join(emb_outdir, 'embedding_prior.tsv'), 'wb'))
 
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
     visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv,
                                               spaligner_ground_truth_tsv, p_clustering_tsv,
-                                              gfa, fG, outdir)
+                                              gfa, fG, emb_outdir)
 
     ground_truth_clustering_tsv = os.path.join(outdir, 'ground_truth_clustering.tsv')
     spaligner_parser.spaligner_to_clustering_tsv(spaligner_ground_truth_tsv, ground_truth_clustering_tsv, fG)

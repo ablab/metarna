@@ -56,6 +56,7 @@ def persona_coloring(persona_clustering_tsv):
 def spades_coloring(gfa, outdir):
     p_gfa = get_one_type_gfa(gfa, 'P', outdir)
     p_gfa_df = one_type_gfa_to_df(p_gfa)
+    os.remove(p_gfa)
     colors = pd.DataFrame(p_gfa_df.SegmentNames.str.split(',').tolist(), index=p_gfa_df.PathName).stack()
     colors = colors.reset_index()[[0, 'PathName']]
     colors.columns = ['SegmentNames', 'PathName']
