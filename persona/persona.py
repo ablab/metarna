@@ -107,7 +107,10 @@ def CreatePersonaGraph(graph,
   # persona_id_counter = itertools.count(start=persona_start_id)
 
   for u, egonet in egonets.items():
-    partitioning = clustering_fn(egonet)  # Clustering the egonet.
+    if not egonet.edges:
+      partitioning = [[node] for node in egonet.nodes]
+    else:
+      partitioning = clustering_fn(egonet)  # Clustering the egonet.
     seen_neighbors = set()  # Process each of the egonet's local clusters.
     for p_num, partition in enumerate(partitioning):
       # persona_id = next(persona_id_counter)
