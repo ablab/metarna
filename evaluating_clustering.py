@@ -7,11 +7,14 @@ import csv
 import spaligner_parser
 from gfa_parser import gfa_to_G
 
-def tsv_to_sets(tsv):
+def tsv_to_sets(tsv, min_component_size=2):
     clusters = set()
     with open(tsv, 'r') as fin:
         for line in fin:
-            clusters.add(frozenset(line.split()))
+            path = frozenset(line.split())
+            if len(path) < min_component_size:
+                continue
+            clusters.add(path)
     return clusters
 
 def jaccard_similarity(set1, set2):
