@@ -168,10 +168,22 @@ def main():
     evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv, outdir)
 
 
+def run_with_cProfile():
+    import cProfile
+
+    import pstats
+
+    cProfile.run('main()', os.path.join('ml.cprofile'))
+    p = pstats.Stats('ml.cprofile')
+    p.strip_dirs().sort_stats('cumulative').print_stats(15)
+
+
 if __name__ == '__main__':
     import random
     random.seed(42)
     import numpy as np
     np.random.seed(42)
 
-    main()
+    run_with_cProfile()
+
+
