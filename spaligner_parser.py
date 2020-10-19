@@ -47,10 +47,11 @@ def spaligner_to_df_not_ss(tsv, G):
         tsv_df['sequence of alignment Path'].map(lambda s: Seq(s).reverse_complement())
     return pd.concat([tsv_df, tsv_df_rc])
 
-def spaligner_to_clustering_tsv(spaligner_tsv, clustering_tsv, G):
+def spaligner_to_clustering_tsv(spaligner_tsv, clustering_tsv, G, min_clusters_size=2):
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     tsv_df['path of the alignment'] = tsv_df['path of the alignment'].str.replace(',', ' ')
     tsv_df['path of the alignment'] = tsv_df['path of the alignment'].str.replace(';', ' ')
+    tsv_df = tsv_df[tsv_df['path of the alignment'].str.split(' ').str.len() >= min_clusters_size]
     tsv_df.to_csv(clustering_tsv,
                   columns=['path of the alignment'],
                   sep='\t', header=False, index=False)
