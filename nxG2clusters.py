@@ -175,7 +175,7 @@ def run_with_cProfile():
 
     cProfile.run('main()', os.path.join('ml.cprofile'))
     p = pstats.Stats('ml.cprofile')
-    p.strip_dirs().sort_stats('time').print_stats(15)
+    p.strip_dirs().sort_stats('cumulative').print_stats(10)
 
 
 if __name__ == '__main__':
