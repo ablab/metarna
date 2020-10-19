@@ -123,14 +123,10 @@ def main():
     clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 2)
 
     p_clustering_tsv = os.path.join(outdir, 'persona_clustering.tsv')
-    with open(p_clustering_tsv, 'w') as outfile:
-        for cluster in non_overlapping_clustering:
-            outfile.write(' '.join([str(x) for x in cluster]) + '\n')
+    evaluating_clustering.write_clustering(non_overlapping_clustering, p_clustering_tsv)
 
     clustering_tsv = os.path.join(outdir, 'clustering.tsv')
-    with open(clustering_tsv, 'w') as outfile:
-        for cluster in clustering:
-            outfile.write(' '.join([str(x) for x in cluster]) + '\n')
+    evaluating_clustering.write_clustering(clustering, clustering_tsv)
 
     nx.write_edgelist(persona_graph, os.path.join(outdir, 'persona_graph.tsv'))
 

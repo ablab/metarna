@@ -17,6 +17,15 @@ def tsv_to_sets(tsv, min_component_size=2):
             clusters.add(path)
     return clusters
 
+
+def write_clustering(clustering, tsv, min_clusters_size=2):
+    with open(tsv, 'w') as outfile:
+        for cluster in clustering:
+            if len(cluster) < min_clusters_size:
+                continue
+            outfile.write(' '.join([str(x) for x in cluster]) + '\n')
+
+
 def jaccard_similarity(set1, set2):
     up = len(set1.intersection(set2))
     down = len(set1.union(set2))
