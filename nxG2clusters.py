@@ -120,7 +120,7 @@ def main():
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 
-    clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 2)
+    clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 1)
 
     p_clustering_tsv = os.path.join(outdir, 'persona_clustering.tsv')
     evaluating_clustering.write_clustering(non_overlapping_clustering, p_clustering_tsv)
