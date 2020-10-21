@@ -2,6 +2,8 @@
 
 import sys, os
 
+from collections import defaultdict
+
 import time
 
 import scipy as sp
@@ -53,6 +55,11 @@ def line_to_rc_edge(line):
     attr = {'cigar': fields[5]}
     return u, v, attr
 
+def get_weight_attr(G, u, v, num_long_reads=0):
+    cov = nx.get_node_attributes(G, 'cov')
+    weight_attr = {'cov_diff': abs(cov[u] - cov[v]), 'num_long_reads': num_long_reads}
+    return weight_attr
+
 def gfa_to_G(gfa, kmer_size):
     G = nx.OrderedGraph(k=kmer_size)
     with open(gfa, 'r') as fin:
@@ -81,9 +88,11 @@ def gfa_to_G(gfa, kmer_size):
             elif record_type == 'L':
                 u, v, attr = line_to_edge(line)
                 G.add_edge(u, v, **attr)
+                nx.set_node_attributes(G, {(u, v): get_weight_attr(G, u, v)})
 
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
+                nx.set_node_attributes(G, {(u, v): get_weight_attr(G, u, v)})
     return G
 
 def filter_G_by_degree(G, filtered_degree=2):
@@ -117,16 +126,23 @@ def get_friendships(G):
     return friendships
 
 def get_friendships_from_long_reads(spaligner_tsv, G):
-    friendships = []
+    edges = set()
+    weight_attr = {}
+    num_long_reads = defaultdict(int)
     start = time.time()
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     for path_str in tsv_df['path of the alignment']:
         path = path_str.replace(';', ',').split(',')
-        friendships += [(u, v) for i, u in enumerate(path)
-                        for j, v in enumerate(path) if i < j]
+        for i, u in enumerate(path):
+            for j, v in enumerate(path):
+                if i < j:
+                    edges.add((u, v))
+                    num_long_reads[(u, v)] += 1
+                    weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
     end = time.time()
     print('Elapsed time on long reads graph construction: ', (end - start) * 1.0 / 60 / 60)
-    return friendships
+    return edges, weight_attr
+
 
 def main():
     # SPAdes output

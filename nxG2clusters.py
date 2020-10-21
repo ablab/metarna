@@ -112,7 +112,8 @@ def main():
 
     # fG.add_edges_from(gfa_parser.get_friendships(G))
 
-    fG.add_edges_from(gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv, fG))
+    edges, weight_attr = gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv, fG)
+    fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
     plot_graph_components(fG, graphs_outdir, name='fG', n=4)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
