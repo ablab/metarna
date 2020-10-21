@@ -5,12 +5,16 @@ import networkx.algorithms.community.modularity_max as modularity
 import networkx.algorithms.components.connected as components
 from networkx.algorithms.components import weakly_connected_components
 
+import clustering
+
 
 _CLUSTERING_FN = {
     'label_prop': label_prop.label_propagation_communities,
     'modularity': modularity.greedy_modularity_communities,
     'connected_components': components.connected_components,
-    'weakly_connected_components': weakly_connected_components
+    'weakly_connected_components': weakly_connected_components,
+    'cov_diff': clustering.best_partition_cov_diff,
+    'long_reads': clustering.best_partition_long_reads
 }
 
 flags.DEFINE_string(
