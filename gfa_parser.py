@@ -57,7 +57,8 @@ def line_to_rc_edge(line):
 
 def get_weight_attr(G, u, v, num_long_reads=0):
     cov = nx.get_node_attributes(G, 'cov')
-    weight_attr = {'cov_diff': abs(cov[u] - cov[v]), 'num_long_reads': num_long_reads}
+    weight_attr = {'cov_diff': 1.0 / (abs(cov[u] - cov[v]) + 0.00001),
+                   'num_long_reads': num_long_reads}
     return weight_attr
 
 def gfa_to_G(gfa, kmer_size):
