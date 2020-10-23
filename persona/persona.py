@@ -75,6 +75,8 @@ from boltons.queueutils import HeapPriorityQueue
 import networkx as nx
 # import networkx.algorithms.community.label_propagation as label_prop
 
+import graphs
+
 
 def CreatePersonaGraph(graph,
                        clustering_fn,
@@ -100,7 +102,7 @@ def CreatePersonaGraph(graph,
   """
   egonets = CreateEgonets(graph)
   node_neighbor_persona_id_map = collections.defaultdict(dict)
-  persona_graph = nx.OrderedGraph()
+  persona_graph = nx.OrderedGraph(name='persona')
   persona_to_original_mapping = dict()
 
   # Next id to allacate in persona graph.
@@ -129,7 +131,7 @@ def CreatePersonaGraph(graph,
       assert u in node_neighbor_persona_id_map[v]
       v_p = node_neighbor_persona_id_map[v][u]
       persona_graph.add_edge(u_p, v_p)
-
+  graphs.write_G_statistics(persona_graph)
   return persona_graph, persona_to_original_mapping
 
 

@@ -18,7 +18,8 @@ from persona.persona import PersonaOverlappingClustering
 from persona.flags import _CLUSTERING_FN
 from persona.splitter import do_embedding
 
-import gfa_parser
+from gfa_parser import gfa_to_G
+import graphs
 import spaligner_parser
 import visualising_embedding
 import evaluating_clustering
@@ -71,14 +72,14 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
 
     return tot_emb_df
 
-def plot_graph_components(G, outdir, name='G', n=4):
+def plot_graph_components(G, outdir, n=4):
     options = {'with_labels': True,
                'pos': nx.spring_layout(G),
                'font_size': 5}
     largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
     for i, component in enumerate(largest_components):
         nx.draw(component, **options)
-        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(name, i)))
+        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(G.name, i)))
         plt.clf()
 
 
@@ -92,32 +93,27 @@ def main():
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    G = gfa_parser.gfa_to_G(gfa, k)
+    G = gfa_to_G(gfa, k)
 
     # G = get_tst_G(G)
 
-    # G = gfa_parser.filter_G_by_degree(G)
+    # G = graphs.filter_G_by_degree(G)
+
+    fG = graphs.G_to_friendships_graph(G, spaligner_long_reads_tsv)
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
-    X = gfa_parser.get_X(G.nodes, features_tsv)
+    X = graphs.get_X(G.nodes, features_tsv)
 
+    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
+
+    # graphs drawing
     graphs_outdir = os.path.join(outdir, 'graphs_out')
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
-
-    # fG = G.to_undirected()
-    fG = G
+    plot_graph_components(G, graphs_outdir, n=4)
     plot_graph_components(fG, graphs_outdir, n=4)
-
-    # fG.add_edges_from(gfa_parser.get_friendships(G))
-
-    edges, weight_attr = gfa_parser.get_friendships_from_long_reads(spaligner_long_reads_tsv, fG)
-    fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
-    plot_graph_components(fG, graphs_outdir, name='fG', n=4)
-
-    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
-    plot_graph_components(persona_graph, graphs_outdir, name='persona', n=10)
+    plot_graph_components(persona_graph, graphs_outdir, n=10)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 

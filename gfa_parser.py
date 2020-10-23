@@ -2,10 +2,6 @@
 
 import sys, os
 
-from collections import defaultdict
-
-import time
-
 import scipy as sp
 import pandas as pd
 
@@ -13,7 +9,7 @@ import networkx as nx
 
 from Bio.Seq import reverse_complement
 
-from spaligner_parser import spaligner_to_df_not_ss
+import graphs
 
 
 def get_one_type_gfa(gfa, type, outdir):
@@ -55,14 +51,8 @@ def line_to_rc_edge(line):
     attr = {'cigar': fields[5]}
     return u, v, attr
 
-def get_weight_attr(G, u, v, num_long_reads=0):
-    cov = nx.get_node_attributes(G, 'cov')
-    weight_attr = {'cov_diff': 1.0 / (abs(cov[u] - cov[v]) + 0.00001),
-                   'num_long_reads': num_long_reads}
-    return weight_attr
-
 def gfa_to_G(gfa, kmer_size):
-    G = nx.OrderedGraph(k=kmer_size)
+    G = nx.OrderedGraph(k=kmer_size, name='gfa')
     with open(gfa, 'r') as fin:
         for line in fin:
             record_type = line[0]
@@ -89,60 +79,13 @@ def gfa_to_G(gfa, kmer_size):
             elif record_type == 'L':
                 u, v, attr = line_to_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): get_weight_attr(G, u, v)})
+                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(G, u, v)})
 
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): get_weight_attr(G, u, v)})
+                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(G, u, v)})
+    graphs.write_G_statistics(G)
     return G
-
-def filter_G_by_degree(G, filtered_degree=2):
-    removed = [node for node, degree in dict(G.degree()).items() if degree < filtered_degree]
-    G.remove_nodes_from(removed)
-    return G
-
-def get_A(G):
-    A = nx.adjacency_matrix(G)
-    print(A.todense())
-    return A
-
-def get_X(nodes, out_tsv):
-    X = []
-    features = ['len', 'cov', 'A', 'C', 'G', 'T']
-    with open(out_tsv, 'w') as fout:
-        fout.write('node ' + ' '.join(features) + '\n')
-        for node in nodes:
-            X.append([nodes[node][key] for key in features])
-            fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
-    return X
-
-# Path existence between nodes in gfa graph means edge in friendship graph
-# Nodes connected in friendship graph more likely to belong one gene (like social community)
-def get_friendships(G):
-    start = time.time()
-    friendships = [(u, v) for u in G.nodes for v in G.nodes
-                   if nx.algorithms.shortest_paths.generic.has_path(G, u, v)]
-    end = time.time()
-    print('Elapsed time on friendship graph construction: ', (end - start) * 1.0 / 60 / 60)
-    return friendships
-
-def get_friendships_from_long_reads(spaligner_tsv, G):
-    edges = set()
-    weight_attr = {}
-    num_long_reads = defaultdict(int)
-    start = time.time()
-    tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
-    for path_str in tsv_df['path of the alignment']:
-        path = path_str.replace(';', ',').split(',')
-        for i, u in enumerate(path):
-            for j, v in enumerate(path):
-                if i < j:
-                    edges.add((u, v))
-                    num_long_reads[(u, v)] += 1
-                    weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
-    end = time.time()
-    print('Elapsed time on long reads graph construction: ', (end - start) * 1.0 / 60 / 60)
-    return edges, weight_attr
 
 
 def main():
@@ -158,11 +101,11 @@ def main():
     G = gfa_to_G(gfa, k)
 
     # Get Adjacency matrix
-    A = get_A(G)
+    A = graphs.get_A(G)
 
     # Get feature matrix
     features_tsv = os.path.join(outdir, 'features.tsv')
-    X = get_X(G.nodes, features_tsv)
+    X = graphs.get_X(G.nodes, features_tsv)
 
 
 if __name__ == '__main__':
