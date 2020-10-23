@@ -130,7 +130,7 @@ def CreatePersonaGraph(graph,
       u_p = node_neighbor_persona_id_map[u][v]
       assert u in node_neighbor_persona_id_map[v]
       v_p = node_neighbor_persona_id_map[v][u]
-      persona_graph.add_edge(u_p, v_p)
+      persona_graph.add_edge(u_p, v_p, **graph.get_edge_data(u, v))
   graphs.write_G_statistics(persona_graph)
   return persona_graph, persona_to_original_mapping
 
@@ -186,9 +186,9 @@ def CreateEgonets(graph):
     for pos_u, u in enumerate(not_removed):
       for v in not_removed[pos_u + 1:]:
         if (u, v) in edge_set or (v, u) in edge_set:
-          ego_egonet_map[node].add_edge(u, v)
-          ego_egonet_map[u].add_edge(node, v)
-          ego_egonet_map[v].add_edge(u, node)
+          ego_egonet_map[node].add_edge(u, v, **graph.get_edge_data(u, v))
+          ego_egonet_map[u].add_edge(node, v, **graph.get_edge_data(node, v))
+          ego_egonet_map[v].add_edge(u, node, **graph.get_edge_data(u, node))
 
     completed_nodes.add(node)
   return ego_egonet_map
