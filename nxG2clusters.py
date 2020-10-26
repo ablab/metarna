@@ -3,6 +3,8 @@
 import sys
 import os
 
+import argparse
+
 import networkx as nx
 
 import matplotlib.pyplot as plt
@@ -25,8 +27,28 @@ import visualising_embedding
 import evaluating_clustering
 
 
-local_clustering_fn = _CLUSTERING_FN['geometric_mean']
-global_clustering_fn = _CLUSTERING_FN['geometric_mean']
+def parse_args():
+    parser = argparse.ArgumentParser(description='Clustering on graphs',
+                                     usage='{} --gfa assembly_graph_with_scaffolds.gfa '
+                                           '--ground_truth transcripts_alignment.tsv '
+                                           '--friendships reads_alignment.tsv '
+                                           '-k 49 --outdir clustering_out'
+                                           '--clustering geometric_mean'.format(sys.argv[0]))
+    parser.add_argument('--clustering', '-c', dest='c_name', default='geometric_mean', required=True,
+                        help='Choose the algorithm for local and global clustering', type=str,
+                        choices=['modularity', 'cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
+    parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
+    parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
+                        help='It can be transcripts aligned to assembly graph using SPAligner [tsv]',)
+    parser.add_argument('--friendships', dest='spaligner_long_reads_tsv', required=True,
+                        help='Long reads aligned to assembly graph '
+                             '(or any other confirmation of belonging to one transcript) [tsv]')
+    parser.add_argument('-k', type=int, required=True,
+                        help='k-mer value used in assembly graph construction')
+    parser.add_argument('--outdir', '-o', required=True)
+    args = parser.parse_args()
+    return args
+
 
 def remove_regular_model(in_path, out_path):
     fout = open(out_path, 'w')
@@ -84,31 +106,30 @@ def plot_graph_components(G, outdir, n=4):
 
 
 def main():
-    gfa = sys.argv[1]
-    spaligner_ground_truth_tsv = sys.argv[2]
-    spaligner_long_reads_tsv = sys.argv[3]
-    k = int(sys.argv[4])
-    outdir = sys.argv[5]
+    args = parse_args()
 
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
+    local_clustering_fn = _CLUSTERING_FN[args.c_name]
+    global_clustering_fn = _CLUSTERING_FN[args.c_name]
 
-    G = gfa_to_G(gfa, k)
+    if not os.path.exists(args.outdir):
+        os.mkdir(args.outdir)
+
+    G = gfa_to_G(args.gfa, args.k)
 
     # G = get_tst_G(G)
 
     # G = graphs.filter_G_by_degree(G)
 
-    fG = graphs.G_to_friendships_graph(G, spaligner_long_reads_tsv)
+    fG = graphs.G_to_friendships_graph(G, args.spaligner_long_reads_tsv)
 
     # Get feature matrix
-    features_tsv = os.path.join(outdir, 'features.tsv')
+    features_tsv = os.path.join(args.outdir, 'features.tsv')
     X = graphs.get_X(G.nodes, features_tsv)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
     # graphs drawing
-    graphs_outdir = os.path.join(outdir, 'graphs_out')
+    graphs_outdir = os.path.join(args.outdir, 'graphs_out')
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
     plot_graph_components(G, graphs_outdir, n=4)
@@ -119,15 +140,15 @@ def main():
 
     clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 1)
 
-    p_clustering_tsv = os.path.join(outdir, 'persona_clustering.tsv')
+    p_clustering_tsv = os.path.join(args.outdir, 'persona_clustering.tsv')
     evaluating_clustering.write_clustering(non_overlapping_clustering, p_clustering_tsv)
 
-    clustering_tsv = os.path.join(outdir, 'clustering.tsv')
+    clustering_tsv = os.path.join(args.outdir, 'clustering.tsv')
     evaluating_clustering.write_clustering(clustering, clustering_tsv)
 
-    nx.write_edgelist(persona_graph, os.path.join(outdir, 'persona_graph.tsv'))
+    nx.write_edgelist(persona_graph, os.path.join(args.outdir, 'persona_graph.tsv'))
 
-    persona_to_node_tsv = os.path.join(outdir, 'persona_graph_mapping.tsv')
+    persona_to_node_tsv = os.path.join(args.outdir, 'persona_graph_mapping.tsv')
     with open(persona_to_node_tsv, 'w') as outfile:
         for persona_node, original_node in persona_id_mapping.items():
             outfile.write('{} {}\n'.format(persona_node, original_node))
@@ -157,10 +178,10 @@ def main():
                                               gfa, fG, emb_outdir)'''
 
     ground_truth_clustering_tsv = \
-        spaligner_parser.spaligner_to_clustering_tsv(spaligner_ground_truth_tsv,
-                                                     os.path.join(outdir, 'ground_truth_clustering.tsv'),
+        spaligner_parser.spaligner_to_clustering_tsv(args.spaligner_ground_truth_tsv,
+                                                     os.path.join(args.outdir, 'ground_truth_clustering.tsv'),
                                                      fG)
-    evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv, outdir)
+    evaluating_clustering.evaluate_clustering(clustering_tsv, ground_truth_clustering_tsv, args.outdir)
 
 
 def run_with_cProfile():
