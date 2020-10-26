@@ -2,7 +2,12 @@ import networkx as nx
 
 from collections import defaultdict
 
+from scipy.stats.mstats import gmean
+from scipy.stats import hmean
+
 import time
+
+import sys
 
 from spaligner_parser import spaligner_to_df_not_ss
 
@@ -29,8 +34,11 @@ def get_X(nodes, out_tsv):
 
 def get_weight_attr(G, u, v, num_long_reads=0):
     cov = nx.get_node_attributes(G, 'cov')
-    weight_attr = {'cov_diff': 1.0 / (abs(cov[u] - cov[v]) + 0.00001),
-                   'num_long_reads': num_long_reads}
+    cov_diff = 1.0 / (abs(cov[u] - cov[v]) + sys.float_info.epsilon)
+    weight_attr = {'cov_diff': cov_diff,
+                   'num_long_reads': num_long_reads,
+                   'geometric_mean': gmean([cov_diff, num_long_reads]),
+                   'harmonic_mean': hmean([cov_diff, num_long_reads + sys.float_info.epsilon])}
     return weight_attr
 
 def write_G_statistics(G):

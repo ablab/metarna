@@ -25,8 +25,8 @@ import visualising_embedding
 import evaluating_clustering
 
 
-local_clustering_fn = _CLUSTERING_FN['cov_diff']
-global_clustering_fn = _CLUSTERING_FN['cov_diff']
+local_clustering_fn = _CLUSTERING_FN['geometric_mean']
+global_clustering_fn = _CLUSTERING_FN['geometric_mean']
 
 def remove_regular_model(in_path, out_path):
     fout = open(out_path, 'w')

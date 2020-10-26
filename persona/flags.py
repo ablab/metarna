@@ -14,7 +14,9 @@ _CLUSTERING_FN = {
     'connected_components': components.connected_components,
     'weakly_connected_components': weakly_connected_components,
     'cov_diff': clustering.best_partition_cov_diff,
-    'long_reads': clustering.best_partition_long_reads
+    'long_reads': clustering.best_partition_long_reads,
+    'geometric_mean': clustering.best_partition_geometric_mean,
+    'harmonic_mean': clustering.best_partition_harmonic_mean
 }
 
 flags.DEFINE_string(
