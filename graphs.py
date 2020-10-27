@@ -114,5 +114,5 @@ def plot_graph_components(G, weight, outdir, n=4):
         nx.draw(component, **options)
         nx.draw_networkx_edge_labels(component, options['pos'], font_size=options['font_size'],
                                      edge_labels=truncate_values(nx.get_edge_attributes(G, weight)))
-        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(G.name, i)))
+        plt.savefig(os.path.join(outdir, '{}.{}.png'.format(G.name, i)))
         plt.clf()
