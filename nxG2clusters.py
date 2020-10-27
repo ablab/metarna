@@ -36,7 +36,7 @@ def parse_args():
                                            '--clustering geometric_mean'.format(sys.argv[0]))
     parser.add_argument('--clustering', '-c', dest='c_name', default='geometric_mean', required=True,
                         help='Choose the algorithm for local and global clustering', type=str,
-                        choices=['modularity', 'cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
+                        choices=['cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
                         help='It can be transcripts aligned to assembly graph using SPAligner [tsv]',)
@@ -46,7 +46,11 @@ def parse_args():
     parser.add_argument('-k', type=int, required=True,
                         help='k-mer value used in assembly graph construction')
     parser.add_argument('--outdir', '-o', required=True)
+    parser.add_argument('--filter', default=0., type=float,
+                        help='Filter this percent of edges based on their weights')
+
     args = parser.parse_args()
+
     return args
 
 
@@ -121,6 +125,7 @@ def main():
     # G = graphs.filter_G_by_degree(G)
 
     fG = graphs.G_to_friendships_graph(G, args.spaligner_long_reads_tsv)
+    graphs.filter_G_by_weight(fG, args.c_name, args.filter)
 
     # Get feature matrix
     features_tsv = os.path.join(args.outdir, 'features.tsv')

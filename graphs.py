@@ -2,6 +2,8 @@ import networkx as nx
 
 from collections import defaultdict
 
+import numpy as np
+
 from scipy.stats.mstats import gmean
 from scipy.stats import hmean
 
@@ -16,6 +18,15 @@ def filter_G_by_degree(G, filtered_degree=2):
     removed = [node for node, degree in dict(G.degree()).items() if degree < filtered_degree]
     G.remove_nodes_from(removed)
     return G
+
+def filter_G_by_weight(G, weight, treshold):
+    weights = nx.get_edge_attributes(G, weight)
+    w_list = list(weights.values())
+    k = max(0, int(len(w_list) * treshold) - 1)
+    min_weight = np.partition(w_list, k)[k]
+    G.remove_edges_from([e for e, w in weights.items() if w < min_weight])
+    G.name += '_min_weight_{:.3f}'.format(min_weight)
+    write_G_statistics(G)
 
 def get_A(G):
     A = nx.adjacency_matrix(G)
@@ -36,7 +47,7 @@ def get_weight_attr(G, u, v, num_long_reads=0):
     cov = nx.get_node_attributes(G, 'cov')
     cov_diff = 1.0 / (abs(cov[u] - cov[v]) + sys.float_info.epsilon)
     weight_attr = {'cov_diff': cov_diff,
-                   'num_long_reads': num_long_reads,
+                   'long_reads': num_long_reads,
                    'geometric_mean': gmean([cov_diff, num_long_reads]),
                    'harmonic_mean': hmean([cov_diff, num_long_reads + sys.float_info.epsilon])}
     return weight_attr
