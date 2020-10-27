@@ -73,7 +73,6 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
                     weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
     end = time.time()
     # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
-    write_G_statistics(G)
     return edges, weight_attr
 
 def G_to_friendships_graph(G, spaligner_long_reads_tsv):
@@ -83,4 +82,5 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv):
     # fG.add_edges_from(gfa_parser.get_friendships(G))
     edges, weight_attr = get_friendships_from_long_reads(spaligner_long_reads_tsv, fG)
     fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
+    write_G_statistics(fG)
     return fG
