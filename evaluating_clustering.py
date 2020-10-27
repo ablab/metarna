@@ -4,8 +4,17 @@ import os
 import pandas as pd
 import csv
 
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
+import networkx as nx
+
 import spaligner_parser
 from gfa_parser import gfa_to_G
+
+import graphs
+import clustering
+
 
 def tsv_to_sets(tsv, min_component_size=2):
     clusters = set()
@@ -82,6 +91,36 @@ def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_ts
     with open(short_report_txt, 'w') as fout:
         fout.write('Jaccard similarity: %.3f\n' % J)
         fout.write('F1 score: %.3f\n' % F1)
+
+def get_node_colors(G, c_dict):
+    clusters = []
+    for node in G.nodes:
+        clusters.append(c_dict[node])
+    size = len(set(clusters))
+    node_colors = [str(cluster * 1.0 / size) for cluster in clusters]
+    return node_colors
+
+def plot_components_clusters(G, c_list, weight, outdir, n=4):
+    c_dict = clustering.clusters_list_to_dict(c_list)
+    pos = nx.spring_layout(G)
+    largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
+    for i, component in enumerate(largest_components):
+        colors = get_node_colors(component, c_dict)
+        edge_labels = graphs.truncate_values(nx.get_edge_attributes(G, weight), component.edges)
+        nx.draw_networkx_nodes(component, with_labels=True, pos=pos, font_size=5, node_size=20, node_color=colors)
+        nx.draw_networkx_edges(component, pos, alpha=0.5)
+        nx.draw_networkx_edge_labels(component, pos=pos, font_size=5, edge_labels=edge_labels)
+        plt.savefig(os.path.join(outdir, '{}.{}.png'.format(G.name, i)))
+        plt.clf()
+
+def plot_graph_clusters(G, c_list, outdir):
+    size = float(len(c_list))
+    pos = nx.spring_layout(G)
+    for i, com in enumerate(c_list):
+        nx.draw_networkx_nodes(G, pos, com, node_size=20, node_color=str(i / size))
+    nx.draw_networkx_edges(G, pos, alpha=0.5)
+    plt.savefig(os.path.join(outdir, '{}.png'.format(G.name)))
+    plt.clf()
 
 
 def main():

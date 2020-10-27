@@ -99,10 +99,11 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv):
     write_G_statistics(fG)
     return fG
 
-def truncate_values(w_dict):
+def truncate_values(w_dict, keys):
     truncated_dict = {}
     for key, value in w_dict.items():
-        truncated_dict[key] = str(value)[:5]
+        if key in keys:
+            truncated_dict[key] = str(value)[:5]
     return truncated_dict
 
 def plot_graph_components(G, weight, outdir, n=4):
@@ -113,6 +114,6 @@ def plot_graph_components(G, weight, outdir, n=4):
     for i, component in enumerate(largest_components):
         nx.draw(component, **options)
         nx.draw_networkx_edge_labels(component, options['pos'], font_size=options['font_size'],
-                                     edge_labels=truncate_values(nx.get_edge_attributes(G, weight)))
+                                     edge_labels=truncate_values(nx.get_edge_attributes(G, weight), component.edges))
         plt.savefig(os.path.join(outdir, '{}.{}.png'.format(G.name, i)))
         plt.clf()

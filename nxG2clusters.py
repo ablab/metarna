@@ -129,9 +129,11 @@ def main():
         os.mkdir(graphs_outdir)
     graphs.plot_graph_components(G, args.c_name, graphs_outdir, n=4)
     graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=4)
-    graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
+    # graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
+    evaluating_clustering.plot_graph_clusters(persona_graph, non_overlapping_clustering, graphs_outdir)
+    evaluating_clustering.plot_components_clusters(persona_graph, non_overlapping_clustering, args.c_name, graphs_outdir, n=100)
 
     clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 1)
 
