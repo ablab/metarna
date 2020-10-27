@@ -10,6 +10,9 @@ from scipy.stats import hmean
 import time
 
 import sys
+import os
+
+import matplotlib.pyplot as plt
 
 from spaligner_parser import spaligner_to_df_not_ss
 
@@ -95,3 +98,21 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv):
     fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
     write_G_statistics(fG)
     return fG
+
+def truncate_values(w_dict):
+    truncated_dict = {}
+    for key, value in w_dict.items():
+        truncated_dict[key] = str(value)[:5]
+    return truncated_dict
+
+def plot_graph_components(G, weight, outdir, n=4):
+    options = {'with_labels': True,
+               'pos': nx.spring_layout(G),
+               'font_size': 5}
+    largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
+    for i, component in enumerate(largest_components):
+        nx.draw(component, **options)
+        nx.draw_networkx_edge_labels(component, options['pos'], font_size=options['font_size'],
+                                     edge_labels=truncate_values(nx.get_edge_attributes(G, weight)))
+        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(G.name, i)))
+        plt.clf()

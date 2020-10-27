@@ -98,16 +98,6 @@ def get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv):
 
     return tot_emb_df
 
-def plot_graph_components(G, outdir, n=4):
-    options = {'with_labels': True,
-               'pos': nx.spring_layout(G),
-               'font_size': 5}
-    largest_components = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)[:n]
-    for i, component in enumerate(largest_components):
-        nx.draw(component, **options)
-        plt.savefig(os.path.join(outdir, '{}.component_{}.png'.format(G.name, i)))
-        plt.clf()
-
 
 def main():
     args = parse_args()
@@ -137,9 +127,9 @@ def main():
     graphs_outdir = os.path.join(args.outdir, 'graphs_out')
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
-    plot_graph_components(G, graphs_outdir, n=4)
-    plot_graph_components(fG, graphs_outdir, n=4)
-    plot_graph_components(persona_graph, graphs_outdir, n=10)
+    graphs.plot_graph_components(G, args.c_name, graphs_outdir, n=4)
+    graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=4)
+    graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
 
