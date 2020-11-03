@@ -34,8 +34,8 @@ def parse_args():
                                            '--friendships reads_alignment.tsv '
                                            '-k 49 --outdir clustering_out'
                                            '--clustering geometric_mean'.format(sys.argv[0]))
-    parser.add_argument('--clustering', '-c', dest='c_name', default='geometric_mean', required=True,
-                        help='Choose the algorithm for local and global clustering', type=str,
+    parser.add_argument('--clustering', '-c', dest='c_name', default='long_reads', type=str,
+                        help='Choose the algorithm for local and global clustering',
                         choices=['cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
