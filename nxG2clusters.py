@@ -3,6 +3,8 @@
 import sys
 import os
 
+import time
+
 import argparse
 
 import networkx as nx
@@ -197,6 +199,9 @@ if __name__ == '__main__':
     import numpy as np
     np.random.seed(42)
 
+    start_time = time.time()
+
     run_with_cProfile()
 
+    print("Cumtime: %.3f h" % ((time.time() - start_time) / 60 / 60))
 
