@@ -10,6 +10,7 @@ from Bio import SeqIO
 def get_covered_t_ids(tsv, est_count_idx, min_est):
     ids = set()
     with open(tsv, 'r') as fin:
+        next(fin)
         for line in fin:
             values = line.strip().split()
             id = values[0]
