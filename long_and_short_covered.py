@@ -17,6 +17,7 @@ def get_covered_t_ids(tsv, est_count_idx, min_est):
             est = float(values[est_count_idx])
             if est >= min_est:
                 ids.add(id)
+    print(tsv + ': {}'.format(len(ids)))
     return ids
 
 def filter_fasta_by_ids(in_fasta, out_fasta, ids):
