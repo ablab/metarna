@@ -34,7 +34,7 @@ long_tsv = sys.argv[2]
 min_est = float(sys.argv[3])
 in_fasta = sys.argv[4]
 
-out_fasta = Path(in_fasta).stem + '.simultaneously_covered.fa'
+out_fasta = Path(in_fasta).stem + '.simultaneously_covered.{}.fa'.format(min_est)
 
 short_covered = get_covered_t_ids(short_tsv, 3, min_est)
 long_covered = get_covered_t_ids(long_tsv, 1, min_est)
