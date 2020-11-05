@@ -24,6 +24,7 @@ def tsv_to_sets(tsv, min_component_size=2):
             if len(path) < min_component_size:
                 continue
             clusters.add(path)
+    print(tsv + ': {} clusters'.format(len(clusters)))
     return clusters
 
 
