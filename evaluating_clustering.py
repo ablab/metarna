@@ -77,6 +77,11 @@ def F1_for_clustering(reconstructed_set, ground_truth_set):
     F1 /= len(reconstructed_set)
     return F1
 
+def exact_recall(reconstructed_set, ground_truth_set):
+    up = len(reconstructed_set.intersection(ground_truth_set))
+    down = len(ground_truth_set)
+    return up / down
+
 def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_tsv, outdir):
     short_report_txt = os.path.join(outdir, 'short_report.txt')
 
@@ -86,11 +91,15 @@ def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_ts
     J = jaccard_similarity(reconstructed_clusters, ground_truth_clusters)
     print('Jaccard similarity: %.3f' % J)
 
+    recall = exact_recall(reconstructed_clusters, ground_truth_clusters)
+    print('Recall: %.3f' % recall)
+
     F1 = F1_for_clustering(reconstructed_clusters, ground_truth_clusters)
     print('F1 score: %.3f' % F1)
 
     with open(short_report_txt, 'w') as fout:
         fout.write('Jaccard similarity: %.3f\n' % J)
+        fout.write('Recall: %.3f\n' % recall)
         fout.write('F1 score: %.3f\n' % F1)
 
 def get_node_colors(G, c_dict):
