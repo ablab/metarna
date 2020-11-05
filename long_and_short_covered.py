@@ -38,6 +38,8 @@ out_fasta = Path(in_fasta).stem + '.simultaneously_covered.fa'
 
 short_covered = get_covered_t_ids(short_tsv, 3, min_est)
 long_covered = get_covered_t_ids(long_tsv, 1, min_est)
+
 together_covered = short_covered.intersection(long_covered)
+print('Simultaneously covered: {}'.format(len(together_covered)))
 
 filter_fasta_by_ids(in_fasta, out_fasta, together_covered)
