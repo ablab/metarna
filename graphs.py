@@ -2,6 +2,8 @@ import networkx as nx
 
 from collections import defaultdict
 
+import itertools
+
 import numpy as np
 
 from scipy.stats.mstats import gmean
@@ -79,12 +81,10 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     for path_str in tsv_df['path of the alignment']:
         path = path_str.replace(';', ',').split(',')
-        for i, u in enumerate(path):
-            for j, v in enumerate(path):
-                if i < j:
-                    edges.add((u, v))
-                    num_long_reads[(u, v)] += 1
-                    weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
+        for u, v in itertools.combinations(path, 2):
+            edges.add((u, v))
+            num_long_reads[(u, v)] += 1
+            weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
     end = time.time()
     # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
     return edges, weight_attr
