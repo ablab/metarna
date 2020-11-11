@@ -77,13 +77,15 @@ def gfa_to_G(gfa, kmer_size):
                            G=attr['seq'].count('C') * 1.0 / len(attr['seq']),
                            T=attr['seq'].count('A') * 1.0 / len(attr['seq']))
             elif record_type == 'L':
+                cov = nx.get_node_attributes(G, 'cov')
+
                 u, v, attr = line_to_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(G, u, v)})
+                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v])})
 
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(G, u, v)})
+                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v])})
     graphs.write_G_statistics(G)
     return G
 

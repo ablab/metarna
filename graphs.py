@@ -48,9 +48,8 @@ def get_X(nodes, out_tsv):
             fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
-def get_weight_attr(G, u, v, num_long_reads=0):
-    cov = nx.get_node_attributes(G, 'cov')
-    cov_diff = 1.0 / (abs(cov[u] - cov[v]) + sys.float_info.epsilon)
+def get_weight_attr(cov_u, cov_v, num_long_reads=0):
+    cov_diff = 1.0 / (abs(cov_u - cov_v) + sys.float_info.epsilon)
     weight_attr = {'cov_diff': cov_diff,
                    'long_reads': num_long_reads,
                    'geometric_mean': gmean([cov_diff, num_long_reads]),
@@ -79,12 +78,13 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
     num_long_reads = defaultdict(int)
     start = time.time()
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
+    cov = nx.get_node_attributes(G, 'cov')
     for path_str in tsv_df['path of the alignment']:
         path = path_str.replace(';', ',').split(',')
         for u, v in itertools.combinations(path, 2):
             # edges.add((u, v))
             num_long_reads[(u, v)] += 1
-            weight_attr[(u, v)] = get_weight_attr(G, u, v, num_long_reads[(u, v)])
+            weight_attr[(u, v)] = get_weight_attr(cov[u], cov[v], num_long_reads[(u, v)])
     end = time.time()
     # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
     return weight_attr
