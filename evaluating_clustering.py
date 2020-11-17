@@ -62,19 +62,25 @@ def F1_for_two_clusters(reconstructed_cluster, ground_truth_cluster):
         F1 = 0
     return F1
 
-def F1_best_match(r_cluster, ground_truth_set):
+def F1_best_match(r_cluster, ground_truth_set, fout):
     F1_best_match = 0
+    cluster_best_match = None
     for gt_cluster in ground_truth_set:
         F1_curr = F1_for_two_clusters(r_cluster, gt_cluster)
         if F1_best_match < F1_curr:
             F1_best_match = F1_curr
+            cluster_best_match = gt_cluster
+    if F1_best_match != 1:
+        fout.write(' '.join(sorted(r_cluster)) + '\n' + ' '.join(sorted(cluster_best_match)) + '\n\n')
     return F1_best_match
 
-def F1_for_clustering(reconstructed_set, ground_truth_set):
+def F1_for_clustering(reconstructed_set, ground_truth_set, outdir):
     F1 = 0
-    for r_cluster in reconstructed_set:
-        F1 += F1_best_match(r_cluster, ground_truth_set)
-    F1 /= len(reconstructed_set)
+    not_reconstructed_txt = os.path.join(outdir, 'not_reconstructed.debug')
+    with open(not_reconstructed_txt, 'w') as fout:
+        for r_cluster in reconstructed_set:
+            F1 += F1_best_match(r_cluster, ground_truth_set, fout)
+        F1 /= len(reconstructed_set)
     return F1
 
 def exact_recall(reconstructed_set, ground_truth_set):
@@ -94,7 +100,7 @@ def evaluate_clustering(reconstructed_clustering_tsv, ground_truth_clustering_ts
     recall = exact_recall(reconstructed_clusters, ground_truth_clusters)
     print('Recall: %.3f' % recall)
 
-    F1 = F1_for_clustering(reconstructed_clusters, ground_truth_clusters)
+    F1 = F1_for_clustering(reconstructed_clusters, ground_truth_clusters, outdir)
     print('F1 score: %.3f' % F1)
 
     with open(short_report_txt, 'w') as fout:
