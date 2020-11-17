@@ -12,7 +12,7 @@ def get_est_count_ind(tsv):
         columns = fin.readline().strip().split()
     for ind, name in enumerate(columns):
         if 'count' in name:
-            return ind
+            return -(len(columns) - ind)
 
 def get_covered_t_ids(tsv, min_est, max_est):
     ids = set()
