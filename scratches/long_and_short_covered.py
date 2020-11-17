@@ -7,23 +7,23 @@ from pathlib import Path
 from Bio import SeqIO
 
 
-def get_est_count_ind(tsv):
+def get_tpm_ind(tsv):
     with open(tsv, 'r') as fin:
         columns = fin.readline().strip().split()
     for ind, name in enumerate(columns):
-        if 'count' in name:
+        if 'tpm' in name or 'TPM' in name:
             return -(len(columns) - ind)
 
-def get_covered_t_ids(tsv, min_est, max_est):
+def get_covered_t_ids(tsv, min_tpm, max_tpm):
     ids = set()
-    est_count_ind = get_est_count_ind(tsv)
+    tpm_count_ind = get_tpm_ind(tsv)
     with open(tsv, 'r') as fin:
         next(fin)
         for line in fin:
             values = line.strip().split()
             id = values[0]
-            est = float(values[est_count_ind])
-            if est >= min_est and est <= max_est:
+            tpm = float(values[tpm_count_ind])
+            if tpm > min_tpm and tpm <= max_tpm:
                 ids.add(id)
     print(tsv + ': {}'.format(len(ids)))
     return ids
