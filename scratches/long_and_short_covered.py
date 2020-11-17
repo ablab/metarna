@@ -7,14 +7,22 @@ from pathlib import Path
 from Bio import SeqIO
 
 
-def get_covered_t_ids(tsv, est_count_idx, min_est, max_est):
+def get_est_count_ind(tsv):
+    with open(tsv, 'r') as fin:
+        columns = fin.readline().strip().split()
+    for ind, name in enumerate(columns):
+        if 'count' in name:
+            return ind
+
+def get_covered_t_ids(tsv, min_est, max_est):
     ids = set()
+    est_count_ind = get_est_count_ind(tsv)
     with open(tsv, 'r') as fin:
         next(fin)
         for line in fin:
             values = line.strip().split()
             id = values[0]
-            est = float(values[est_count_idx])
+            est = float(values[est_count_ind])
             if est >= min_est and est <= max_est:
                 ids.add(id)
     print(tsv + ': {}'.format(len(ids)))
@@ -37,8 +45,8 @@ in_fasta = sys.argv[5]
 
 out_fasta = Path(in_fasta).stem + '.simultaneously_covered.{}-{}.fa'.format(min_est, max_est)
 
-short_covered = get_covered_t_ids(short_tsv, 3, min_est, max_est)
-long_covered = get_covered_t_ids(long_tsv, 1, min_est, max_est)
+short_covered = get_covered_t_ids(short_tsv, min_est, max_est)
+long_covered = get_covered_t_ids(long_tsv, min_est, max_est)
 
 together_covered = short_covered.intersection(long_covered)
 print('Simultaneously covered: {}'.format(len(together_covered)))
