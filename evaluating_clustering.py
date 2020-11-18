@@ -67,7 +67,7 @@ def F1_best_match(r_cluster, ground_truth_set, fout):
     cluster_best_match = None
     for gt_cluster in ground_truth_set:
         F1_curr = F1_for_two_clusters(r_cluster, gt_cluster)
-        if F1_best_match < F1_curr:
+        if F1_best_match <= F1_curr:
             F1_best_match = F1_curr
             cluster_best_match = gt_cluster
     if F1_best_match != 1:
