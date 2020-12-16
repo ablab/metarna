@@ -15,6 +15,36 @@ def spaligner_to_df(tsv):
                                                'sequence of alignment Path'])
     return tsv_df
 
+
+def remove_zero_alignments(series_obj):
+    # TODO Need to recalculate start and end after zero alignments removing
+    # TODO since there are ; and else cases
+    # series_obj['start position of alignment on sequence'] = '*'
+    # series_obj['end position of alignment on sequence'] = '*'
+    # series_obj['start position of alignment on the first edge of the Path'] = '*'
+    # series_obj['end position of alignment on the last edge of the Path'] = '*'
+
+    pathes = series_obj['path of the alignment'].split(';')
+    lengths = series_obj['lengths of the alignment on each edge of the Path respectively'].split(';')
+    new_pathes = []
+    new_lengths = []
+    for i_path, path in enumerate(pathes):
+        nodes = path.split(',')
+        lengths_for_nodes = lengths[i_path].split(',')
+        nonzero_ind = [i for i, len in enumerate(lengths_for_nodes) if len != 0]
+        new_pathes.append(','.join([nodes[i] for i in nonzero_ind]))
+        new_lengths.append(','.join([lengths_for_nodes[i] for i in nonzero_ind]))
+    series_obj['path of the alignment'] = ';'.join(new_pathes)
+    series_obj['lengths of the alignment on each edge of the Path respectively'] = ';'.join(new_lengths)
+    return series_obj
+
+def remove_zero_length_alignments(tsv_in, tsv_out):
+    tsv_df = spaligner_to_df(tsv_in)
+    filtered_df = tsv_df.apply(remove_zero_alignments, axis=1)
+    filtered_df.to_csv(tsv_out, sep='\t', header=False, index=False)
+    return tsv_out
+
+
 def rc_smth_of_the_alignment(path_str):
     pathes = path_str.split(';')
     rc_pathes = []

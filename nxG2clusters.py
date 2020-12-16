@@ -110,6 +110,20 @@ def main():
     if not os.path.exists(args.outdir):
         os.mkdir(args.outdir)
 
+    tmp_dir = os.path.join(args.outdir, 'tmp')
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+
+    # SPAligner filtering
+    ground_truth_name = os.path.splitext(os.path.basename(args.spaligner_ground_truth_tsv))[0] + '.filtered.tsv'
+    args.spaligner_ground_truth_tsv = \
+        spaligner_parser.remove_zero_length_alignments(args.spaligner_ground_truth_tsv,
+                                                       os.path.join(tmp_dir, ground_truth_name))
+    long_reads_name = os.path.splitext(os.path.basename(args.spaligner_long_reads_tsv))[0] + '.filtered.tsv'
+    args.spaligner_long_reads_tsv = \
+        spaligner_parser.remove_zero_length_alignments(args.spaligner_long_reads_tsv,
+                                                       os.path.join(tmp_dir, long_reads_name))
+
     G = gfa_to_G(args.gfa, args.k)
 
     # G = get_tst_G(G)
