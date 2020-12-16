@@ -115,11 +115,11 @@ def main():
         os.mkdir(tmp_dir)
 
     # SPAligner filtering
-    ground_truth_name = os.path.splitext(os.path.basename(args.spaligner_ground_truth_tsv))[0] + '.filtered.tsv'
+    ground_truth_name = 'spaligner_ground_truth.filtered.tsv'
     args.spaligner_ground_truth_tsv = \
         spaligner_parser.remove_zero_length_alignments(args.spaligner_ground_truth_tsv,
                                                        os.path.join(tmp_dir, ground_truth_name))
-    long_reads_name = os.path.splitext(os.path.basename(args.spaligner_long_reads_tsv))[0] + '.filtered.tsv'
+    long_reads_name = 'spaligner_long_reads.filtered.tsv'
     args.spaligner_long_reads_tsv = \
         spaligner_parser.remove_zero_length_alignments(args.spaligner_long_reads_tsv,
                                                        os.path.join(tmp_dir, long_reads_name))
