@@ -15,8 +15,16 @@ def spaligner_to_df(tsv):
                                                'sequence of alignment Path'])
     return tsv_df
 
+# Lines such as the following
+# NODE_746_length_903_cov_38.166276_g539_i1       0       903     355     80      903
+# 42629-,22255+,40519-,38909+,41393+,38139+       0,285,90,54,394,80      AGGGTGTGGCAGAGGCAG...
+num_zero_alignment_lines = 0
+num_zero_alignments = 0
 
 def remove_zero_alignments(series_obj):
+    global num_zero_alignment_lines
+    global num_zero_alignments
+
     # TODO Need to recalculate start and end after zero alignments removing
     # TODO since there are ; and else cases
     # series_obj['start position of alignment on sequence'] = '*'
@@ -31,7 +39,11 @@ def remove_zero_alignments(series_obj):
     for i_path, path in enumerate(pathes):
         nodes = path.split(',')
         lengths_for_nodes = lengths[i_path].split(',')
-        nonzero_ind = [i for i, len in enumerate(lengths_for_nodes) if len != 0]
+        nonzero_ind = [i for i, l in enumerate(lengths_for_nodes) if l != 0]
+        n_diff = len(lengths_for_nodes) - len(nonzero_ind)
+        num_zero_alignments += n_diff
+        if n_diff > 0:
+            num_zero_alignment_lines += 1
         new_pathes.append(','.join([nodes[i] for i in nonzero_ind]))
         new_lengths.append(','.join([lengths_for_nodes[i] for i in nonzero_ind]))
     series_obj['path of the alignment'] = ';'.join(new_pathes)
@@ -39,9 +51,15 @@ def remove_zero_alignments(series_obj):
     return series_obj
 
 def remove_zero_length_alignments(tsv_in, tsv_out):
+    global num_zero_alignment_lines
+    global num_zero_alignments
+
     tsv_df = spaligner_to_df(tsv_in)
     filtered_df = tsv_df.apply(remove_zero_alignments, axis=1)
     filtered_df.to_csv(tsv_out, sep='\t', header=False, index=False)
+    print(tsv_in)
+    print('Number of lines containing zero length alignments: {}'.format(num_zero_alignment_lines))
+    print('Number of zero length alignments: {}\n'.format(num_zero_alignments))
     return tsv_out
 
 
