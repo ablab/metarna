@@ -54,12 +54,13 @@ def remove_zero_length_alignments(tsv_in, tsv_out):
     # 42629-,22255+,40519-,38909+,41393+,38139+       0,285,90,54,394,80      AGGGTGTGGCAGAGGCAG...
     num_zero_alignment_lines = 0
     num_zero_alignments = 0
+    total_lines = len(open(tsv_in).readlines())
 
     tsv_df = spaligner_to_df(tsv_in)
     filtered_df = tsv_df.apply(remove_zero_length_alignments_from_line, axis=1)
     filtered_df.to_csv(tsv_out, sep='\t', header=False, index=False)
     print(tsv_in)
-    print('Number of lines containing zero length alignments: {}'.format(num_zero_alignment_lines))
+    print('Number of lines containing zero length alignments: {} of {}'.format(num_zero_alignment_lines, total_lines))
     print('Number of zero length alignments: {}\n'.format(num_zero_alignments))
     return tsv_out
 
