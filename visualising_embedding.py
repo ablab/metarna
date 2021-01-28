@@ -70,12 +70,11 @@ def spades_coloring(gfa, outdir):
     return spades_colors
 
 def do_PCA(X):
-    pca = PCA(n_components=3)
+    pca = PCA(n_components=2)
     pca_result = pca.fit_transform(X.values)
 
     pca_df = pd.DataFrame({'pca_1': pca_result[:, 0],
-                           'pca_2': pca_result[:, 1],
-                           'pca_3': pca_result[:, 2]},
+                           'pca_2': pca_result[:, 1]},
                           index=X.index)
     print('Explained variation per principal component: {}'.format(pca.explained_variance_ratio_))
     return pca_df
