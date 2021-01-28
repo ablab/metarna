@@ -16,7 +16,7 @@ import graphs
 import clustering
 
 
-def tsv_to_sets(tsv, min_component_size=2):
+def tsv_to_sets(tsv, min_component_size=3):
     clusters = set()
     with open(tsv, 'r') as fin:
         for line in fin:
