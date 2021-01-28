@@ -187,7 +187,7 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_ground_trut
     persona_colors = persona_coloring(p_clustering_tsv)
     df = pd.concat([df, persona_colors.to_frame(name='persona_color')], axis=1)
 
-    sns.pairplot(df, vars=embedding_df.keys()).savefig(os.path.join(outdir, "pairplot.png"))
+    # sns.pairplot(df, vars=embedding_df.keys()).savefig(os.path.join(outdir, "pairplot.png"))
 
     # PCA
     pca_df = do_PCA(embedding_df)
@@ -199,7 +199,7 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_ground_trut
     plot_pca_2d(df, 'PathName', outdir)
 
     # T-SNE
-    X_subset, df_subset = get_subset(embedding_df, df, 10000)
+    '''X_subset, df_subset = get_subset(embedding_df, df, 10000)
     # pca_df = do_PCA(X_subset)
     tsne_df = do_t_SNE(X_subset)
     df_subset = pd.concat([df_subset, tsne_df], axis=1)
@@ -214,7 +214,7 @@ def visualize_embedding(embedding_df, persona_to_node_tsv, spaligner_ground_trut
         umap_df = do_umap(X_subset, n)
         df_subset = pd.concat([df_subset, umap_df], axis=1)
         plot_umap(df_subset, 'PathName', n, outdir)
-        plot_umap(df_subset, 'ground_truth', n, outdir)
+        plot_umap(df_subset, 'ground_truth', n, outdir)'''
 
 
 def main():
