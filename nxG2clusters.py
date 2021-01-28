@@ -152,14 +152,14 @@ def main():
         for persona_node, original_node in persona_id_mapping.items():
             outfile.write('{} {}\n'.format(persona_node, original_node))
 
-    '''print('Embedding...')
+    print('Embedding...')
     embedding = do_embedding(fG, persona_graph, persona_id_mapping,
                              embedding_dim=16, walk_length=10, num_walks_node=40,
                              constraint_learning_rate_scaling_factor=0.1, iterations=10,
                              seed=42)
 
     # output embedding
-    emb_outdir = os.path.join(outdir, 'embedding_out')
+    emb_outdir = os.path.join(args.outdir, 'embedding_out')
     if not os.path.exists(emb_outdir):
         os.mkdir(emb_outdir)
 
@@ -173,8 +173,8 @@ def main():
     tot_emb_df = get_total_emb(p_emb_tsv, features_tsv, persona_to_node_tsv)
 
     visualising_embedding.visualize_embedding(tot_emb_df, persona_to_node_tsv,
-                                              spaligner_ground_truth_tsv, p_clustering_tsv,
-                                              gfa, fG, emb_outdir)'''
+                                              args.spaligner_ground_truth_tsv, p_clustering_tsv,
+                                              args.gfa, fG, emb_outdir)
 
     ground_truth_clustering_tsv = \
         spaligner_parser.spaligner_to_clustering_tsv(args.spaligner_ground_truth_tsv,
