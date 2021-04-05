@@ -129,7 +129,7 @@ def main():
     graphs_outdir = os.path.join(args.outdir, 'graphs_out')
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
-    graphs.plot_graph_components(G, args.c_name, graphs_outdir, n=4)
+    graphs.plot_graph_components(G.to_undirected(), args.c_name, graphs_outdir, n=4)
     graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=4)
     # graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
 
@@ -194,10 +194,10 @@ def run_with_cProfile():
 
 
 if __name__ == '__main__':
-    import random
-    random.seed(42)
-    import numpy as np
-    np.random.seed(42)
+    # import random
+    # random.seed(42)
+    # import numpy as np
+    # np.random.seed(42)
 
     start_time = time.time()
 

@@ -90,8 +90,8 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
     return weight_attr
 
 def G_to_friendships_graph(G, spaligner_long_reads_tsv):
-    # fG = G.to_undirected()
-    fG = G.copy()
+    fG = G.to_undirected()
+    # fG = G.copy()
     fG.name = 'friendships'
     # fG.add_edges_from(gfa_parser.get_friendships(G))
     weight_attr = get_friendships_from_long_reads(spaligner_long_reads_tsv, fG)
