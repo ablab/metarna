@@ -52,7 +52,7 @@ def line_to_rc_edge(line):
     return u, v, attr
 
 def gfa_to_G(gfa, kmer_size):
-    G = nx.OrderedGraph(k=kmer_size, name='gfa')
+    G = nx.DiGraph(k=kmer_size, name='gfa')
     with open(gfa, 'r') as fin:
         for line in fin:
             record_type = line[0]
@@ -86,7 +86,7 @@ def gfa_to_G(gfa, kmer_size):
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
                 nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v])})
-    graphs.write_G_statistics(G)
+    graphs.write_G_statistics(G.to_undirected())
     return G
 
 
