@@ -123,7 +123,8 @@ def plot_components_clusters(G, c_list, weight, outdir, n=4):
     for i, component in enumerate(largest_components):
         colors = get_node_colors(component, c_dict)
         edge_labels = graphs.truncate_values(nx.get_edge_attributes(G, weight), component.edges)
-        nx.draw_networkx_nodes(component, with_labels=True, pos=pos, font_size=5, node_size=20, node_color=colors)
+        nx.draw_networkx_nodes(component, pos=pos, node_color=colors)
+        nx.draw_networkx_labels(component, pos, font_size=5)
         nx.draw_networkx_edges(component, pos, alpha=0.5)
         nx.draw_networkx_edge_labels(component, pos=pos, font_size=5, edge_labels=edge_labels)
         plt.savefig(os.path.join(outdir, '{}.{}.png'.format(G.name, i)))
