@@ -135,7 +135,7 @@ def main():
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
     evaluating_clustering.plot_graph_clusters(persona_graph, non_overlapping_clustering, graphs_outdir)
-    evaluating_clustering.plot_components_clusters(persona_graph, non_overlapping_clustering, args.c_name, graphs_outdir, n=100)
+    evaluating_clustering.plot_components_clusters(persona_graph, non_overlapping_clustering, args.c_name, graphs_outdir, n=50000)
 
     clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 1)
 
