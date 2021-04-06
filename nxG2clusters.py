@@ -130,7 +130,7 @@ def main():
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
     graphs.plot_graph_components(G.to_undirected(), args.c_name, graphs_outdir, n=4)
-    graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=4)
+    graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=50000)
     # graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
 
     non_overlapping_clustering = list(global_clustering_fn(persona_graph))
