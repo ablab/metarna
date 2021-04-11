@@ -51,5 +51,6 @@ def spaligner_to_clustering_tsv(spaligner_tsv, clustering_tsv, G, min_clusters_s
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     pathes = pd.Series(tsv_df["path of the alignment"]).str.split(";").explode()
     filtered_pathes = pathes[pathes.str.split(',').str.len() >= min_clusters_size]
-    filtered_pathes.to_csv(clustering_tsv, sep='\t', header=False, index=False)
+    clusters = filtered_pathes.drop_duplicates()
+    clusters.to_csv(clustering_tsv, sep='\t', header=False, index=False)
     return clustering_tsv
