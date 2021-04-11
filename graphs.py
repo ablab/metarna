@@ -79,12 +79,13 @@ def get_friendships_from_long_reads(spaligner_tsv, G):
     start = time.time()
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
     cov = nx.get_node_attributes(G, 'cov')
-    for path_str in tsv_df['path of the alignment']:
-        path = path_str.replace(';', ',').split(',')
-        for u, v in itertools.combinations(path, 2):
-            # edges.add((u, v))
-            num_long_reads[(u, v)] += 1
-            weight_attr[(u, v)] = get_weight_attr(cov[u], cov[v], num_long_reads[(u, v)])
+    for paths_str in tsv_df['path of the alignment']:
+        paths = [path_str.split(',') for path_str in paths_str.split(';')]
+        for path in paths:
+            for u, v in itertools.combinations(path, 2):
+                # edges.add((u, v))
+                num_long_reads[(u, v)] += 1
+                weight_attr[(u, v)] = get_weight_attr(cov[u], cov[v], num_long_reads[(u, v)])
     end = time.time()
     # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
     return weight_attr
