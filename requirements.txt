@@ -10,3 +10,4 @@ scipy==0.15.1
 # numpy==1.18.5 - not for python 3.5 - install using pip
 # absl-py==0.6.1 - not for python 3.5 - install using pip
 # gensim==0.13.2 - no version 0.13.2 - install using pip
+# pandas==0.25.3 - install using pip
