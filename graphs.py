@@ -93,7 +93,7 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
 
     cov = nx.get_node_attributes(fG, 'cov')
     reads_weights = get_friendships_from_spalignments(fG, spaligner_long_reads_tsv)
-    db_weights = get_friendships_from_spalignments(fG, spaligner_db_tsv, 0)
+    db_weights = get_friendships_from_spalignments(fG, spaligner_db_tsv, 10)
     weighted_edges = set(reads_weights.keys()).union(set(db_weights.keys()))
     weight_attr = {edge: get_weight_attr(cov[edge[0]], cov[edge[1]],
                                          reads_weights[edge], db_weights[edge])
