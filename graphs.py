@@ -75,15 +75,16 @@ def get_friendships(G):
     return friendships
 
 def get_friendships_from_spalignments(G, spaligner_tsv, friendship_rate=1):
-    start = time.time()
     friendships_dict = defaultdict(int)
-    tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
-    for path_str in tsv_df['path of the alignment']:
-        path = path_str.replace(';', ',').split(',')
-        for u, v in itertools.combinations(path, 2):
-            friendships_dict[(u, v)] += friendship_rate
-    end = time.time()
-    # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
+    if spaligner_tsv:
+        start = time.time()
+        tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
+        for path_str in tsv_df['path of the alignment']:
+            path = path_str.replace(';', ',').split(',')
+            for u, v in itertools.combinations(path, 2):
+                friendships_dict[(u, v)] += friendship_rate
+        end = time.time()
+        # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
     return friendships_dict
 
 def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
