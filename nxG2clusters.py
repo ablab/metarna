@@ -41,10 +41,10 @@ def parse_args():
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
                         help='It can be transcripts aligned to assembly graph using SPAligner [tsv]',)
-    parser.add_argument('--friendships_reads', dest='spaligner_long_reads_tsv', required=True,
+    parser.add_argument('--friendships_reads', dest='spaligner_long_reads_tsv', required=False,
                         help='Long reads aligned to assembly graph '
                              '(or any other confirmation of belonging to one transcript) [tsv]')
-    parser.add_argument('--friendships_db', dest='spaligner_db_tsv', required=True,
+    parser.add_argument('--friendships_db', dest='spaligner_db_tsv', required=False,
                         help='Reference transcripts aligned to assembly graph '
                              '(or any other confirmation of belonging to one transcript) [tsv]')
     parser.add_argument('-k', type=int, required=True,
