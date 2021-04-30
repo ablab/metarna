@@ -81,11 +81,11 @@ def gfa_to_G(gfa, kmer_size):
 
                 u, v, attr = line_to_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v])})
+                nx.set_edge_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v], 0, 0)})
 
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
-                nx.set_node_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v])})
+                nx.set_edge_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v], 0, 0)})
     graphs.write_G_statistics(G.to_undirected())
     return G
 

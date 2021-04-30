@@ -48,12 +48,14 @@ def get_X(nodes, out_tsv):
             fout.write(node + ' ' + str(X[-1][0]) + ' ' + ' '.join(["%.2f" % e for e in X[-1][1:]]) + '\n')
     return X
 
-def get_weight_attr(cov_u, cov_v, num_long_reads=0):
+def get_weight_attr(cov_u, cov_v, reads_weight, db_weight):
     cov_diff = 1.0 / (abs(cov_u - cov_v) + sys.float_info.epsilon)
     weight_attr = {'cov_diff': cov_diff,
-                   'long_reads': num_long_reads,
-                   'geometric_mean': gmean([cov_diff, num_long_reads]),
-                   'harmonic_mean': hmean([cov_diff, num_long_reads + sys.float_info.epsilon])}
+                   'reads_and_db': reads_weight + db_weight,
+                   'geometric_mean': gmean([cov_diff, reads_weight, db_weight]),
+                   'harmonic_mean': hmean([cov_diff,
+                                           reads_weight + sys.float_info.epsilon,
+                                           db_weight + sys.float_info.epsilon])}
     return weight_attr
 
 def write_G_statistics(G):
@@ -72,31 +74,33 @@ def get_friendships(G):
     print('Elapsed time on friendship graph construction: ', (end - start) * 1.0 / 60 / 60)
     return friendships
 
-def get_friendships_from_long_reads(spaligner_tsv, G):
-    # edges = set()
-    weight_attr = {}
-    num_long_reads = defaultdict(int)
+def get_friendships_from_spalignments(G, spaligner_tsv, friendship_rate=1):
     start = time.time()
+    friendships_dict = defaultdict(int)
     tsv_df = spaligner_to_df_not_ss(spaligner_tsv, G)
-    cov = nx.get_node_attributes(G, 'cov')
     for path_str in tsv_df['path of the alignment']:
         path = path_str.replace(';', ',').split(',')
         for u, v in itertools.combinations(path, 2):
-            # edges.add((u, v))
-            num_long_reads[(u, v)] += 1
-            weight_attr[(u, v)] = get_weight_attr(cov[u], cov[v], num_long_reads[(u, v)])
+            friendships_dict[(u, v)] += friendship_rate
     end = time.time()
     # print('Elapsed time on long reads graph construction: {}'.format((end - start) * 1.0 / 60 / 60))
-    return weight_attr
+    return friendships_dict
 
-def G_to_friendships_graph(G, spaligner_long_reads_tsv):
+def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
     fG = G.to_undirected()
-    # fG = G.copy()
     fG.name = 'friendships'
-    # fG.add_edges_from(gfa_parser.get_friendships(G))
-    weight_attr = get_friendships_from_long_reads(spaligner_long_reads_tsv, fG)
+
+    cov = nx.get_node_attributes(fG, 'cov')
+    reads_weights = get_friendships_from_spalignments(fG, spaligner_long_reads_tsv)
+    db_weights = get_friendships_from_spalignments(fG, spaligner_db_tsv, 0)
+    weighted_edges = set(reads_weights.keys()).union(set(db_weights.keys()))
+    weight_attr = {edge: get_weight_attr(cov[edge[0]], cov[edge[1]],
+                                         reads_weights[edge], db_weights[edge])
+                   for edge in weighted_edges}
     fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
+
     write_G_statistics(fG)
+
     return fG
 
 def truncate_values(w_dict, keys):

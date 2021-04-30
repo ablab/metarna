@@ -33,17 +33,19 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Clustering on graphs',
                                      usage='{} --gfa assembly_graph_with_scaffolds.gfa '
                                            '--ground_truth transcripts_alignment.tsv '
-                                           '--friendships reads_alignment.tsv '
-                                           '-k 49 --outdir clustering_out'
-                                           '--clustering geometric_mean'.format(sys.argv[0]))
-    parser.add_argument('--clustering', '-c', dest='c_name', default='long_reads', type=str,
+                                           '--friendships_reads reads_alignment.tsv '
+                                           '-k 49 --outdir clustering_out'.format(sys.argv[0]))
+    parser.add_argument('--clustering', '-c', dest='c_name', default='reads_and_db', type=str,
                         help='Choose the algorithm for local and global clustering',
                         choices=['cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
                         help='It can be transcripts aligned to assembly graph using SPAligner [tsv]',)
-    parser.add_argument('--friendships', dest='spaligner_long_reads_tsv', required=True,
+    parser.add_argument('--friendships_reads', dest='spaligner_long_reads_tsv', required=True,
                         help='Long reads aligned to assembly graph '
+                             '(or any other confirmation of belonging to one transcript) [tsv]')
+    parser.add_argument('--friendships_db', dest='spaligner_db_tsv', required=True,
+                        help='Reference transcripts aligned to assembly graph '
                              '(or any other confirmation of belonging to one transcript) [tsv]')
     parser.add_argument('-k', type=int, required=True,
                         help='k-mer value used in assembly graph construction')
@@ -116,12 +118,12 @@ def main():
 
     # G = graphs.filter_G_by_degree(G)
 
-    fG = graphs.G_to_friendships_graph(G, args.spaligner_long_reads_tsv)
+    fG = graphs.G_to_friendships_graph(G, args.spaligner_long_reads_tsv, args.spaligner_db_tsv)
     graphs.filter_G_by_weight(fG, args.c_name, args.filter)
 
     # Get feature matrix
-    features_tsv = os.path.join(args.outdir, 'features.tsv')
-    X = graphs.get_X(G.nodes, features_tsv)
+    # features_tsv = os.path.join(args.outdir, 'features.tsv')
+    # X = graphs.get_X(G.nodes, features_tsv)
 
     persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
 
