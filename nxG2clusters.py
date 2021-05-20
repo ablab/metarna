@@ -125,7 +125,7 @@ def main():
     # features_tsv = os.path.join(args.outdir, 'features.tsv')
     # X = graphs.get_X(G.nodes, features_tsv)
 
-    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn)
+    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn, args.c_name)
 
     # graphs drawing
     graphs_outdir = os.path.join(args.outdir, 'graphs_out')
