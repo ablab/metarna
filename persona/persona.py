@@ -78,9 +78,7 @@ import networkx as nx
 import graphs
 
 
-def CreatePersonaGraph(graph,
-                       clustering_fn, weight_name,
-                       persona_start_id=0):
+def CreatePersonaGraph(graph, clustering_fn, personalized_weight, persona_start_id=0):
   """The function creates the persona graph.
 
   Args:
@@ -130,18 +128,18 @@ def CreatePersonaGraph(graph,
       u_p = node_neighbor_persona_id_map[u][v]
       assert u in node_neighbor_persona_id_map[v]
       v_p = node_neighbor_persona_id_map[v][u]
-      splitted_edge_data = get_splitted_edge_data(graph, u, v, node_neighbor_persona_id_map, weight_name)
-      persona_graph.add_edge(u_p, v_p, **splitted_edge_data)
+      personal_edge_data = get_personal_edge_data(graph, u, v, node_neighbor_persona_id_map, personalized_weight)
+      persona_graph.add_edge(u_p, v_p, **personal_edge_data)
   graphs.write_G_statistics(persona_graph)
   return persona_graph, persona_to_original_mapping
 
 
-def get_splitted_edge_data(graph, u, v, node_neighbor_persona_id_map, weight_name):
+def get_personal_edge_data(graph, u, v, node_neighbor_persona_id_map, personalized_weight):
   splitted_edge_data = graph.get_edge_data(u, v).copy()
   num_v = len(node_neighbor_persona_id_map[v])
   num_u = len(node_neighbor_persona_id_map[u])
   if num_u == num_v and num_u >= 2:
-    splitted_edge_data[weight_name] = splitted_edge_data[weight_name] * 1.0 / num_u
+    splitted_edge_data[personalized_weight] = splitted_edge_data[personalized_weight] * 1.0 / num_u
   return splitted_edge_data
 
 

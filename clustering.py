@@ -15,22 +15,7 @@ def clusters_list_to_dict(c_list):
             c_dict[node] = i
     return c_dict
 
-def best_partition_cov_diff(G, weight='cov_diff'):
-    c_dict = community.best_partition(G, weight=weight)
-    c_list = clusters_dict_to_list(c_dict)
-    return c_list
-
-def best_partition_friendships(G, weight='reads_and_db'):
-    c_dict = community.best_partition(G, weight=weight)
-    c_list = clusters_dict_to_list(c_dict)
-    return c_list
-
-def best_partition_geometric_mean(G, weight='geometric_mean'):
-    c_dict = community.best_partition(G, weight=weight)
-    c_list = clusters_dict_to_list(c_dict)
-    return c_list
-
-def best_partition_harmonic_mean(G, weight='harmonic_mean'):
+def best_partition(G, weight='weight'):
     c_dict = community.best_partition(G, weight=weight)
     c_list = clusters_dict_to_list(c_dict)
     return c_list

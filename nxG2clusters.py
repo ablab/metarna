@@ -35,9 +35,15 @@ def parse_args():
                                            '--ground_truth transcripts_alignment.tsv '
                                            '--friendships_reads reads_alignment.tsv '
                                            '-k 49 --outdir clustering_out'.format(sys.argv[0]))
-    parser.add_argument('--clustering', '-c', dest='c_name', default='reads_and_db', type=str,
+    parser.add_argument('--clustering', '-c', dest='c_name', default='best_partition',
+                        required=False, type=str,
                         help='Choose the algorithm for local and global clustering',
-                        choices=['cov_diff', 'long_reads', 'geometric_mean', 'harmonic_mean'])
+                        choices=['label_prop', 'modularity', 'connected_components',
+                                 'weakly_connected_components', 'best_partition'])
+    parser.add_argument('--weight', '-w', dest='w_name', default='reads_and_db',
+                        required=False, type=str,
+                        help='Choose the weight for global clustering',
+                        choices=['cov_diff', 'reads_and_db', 'geometric_mean', 'harmonic_mean'])
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
                         help='It can be transcripts aligned to assembly graph using SPAligner [tsv]',)
@@ -119,25 +125,25 @@ def main():
     # G = graphs.filter_G_by_degree(G)
 
     fG = graphs.G_to_friendships_graph(G, args.spaligner_long_reads_tsv, args.spaligner_db_tsv)
-    graphs.filter_G_by_weight(fG, args.c_name, args.filter)
+    graphs.filter_G_by_weight(fG, args.w_name, args.filter)
 
     # Get feature matrix
     # features_tsv = os.path.join(args.outdir, 'features.tsv')
     # X = graphs.get_X(G.nodes, features_tsv)
 
-    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn, args.c_name)
+    persona_graph, persona_id_mapping = CreatePersonaGraph(fG, local_clustering_fn, args.w_name)
 
     # graphs drawing
     graphs_outdir = os.path.join(args.outdir, 'graphs_out')
     if not os.path.exists(graphs_outdir):
         os.mkdir(graphs_outdir)
-    # graphs.plot_graph_components(G, args.c_name, graphs_outdir, n=4)
-    # graphs.plot_graph_components(fG, args.c_name, graphs_outdir, n=4)
-    # graphs.plot_graph_components(persona_graph, args.c_name, graphs_outdir, n=10)
+    # graphs.plot_graph_components(G, args.w_name, graphs_outdir, n=4)
+    # graphs.plot_graph_components(fG, args.w_name, graphs_outdir, n=4)
+    # graphs.plot_graph_components(persona_graph, args.w_name, graphs_outdir, n=10)
 
-    non_overlapping_clustering = list(global_clustering_fn(persona_graph))
+    non_overlapping_clustering = list(global_clustering_fn(persona_graph, weight=args.w_name))
     # evaluating_clustering.plot_graph_clusters(persona_graph, non_overlapping_clustering, graphs_outdir)
-    # evaluating_clustering.plot_components_clusters(persona_graph, non_overlapping_clustering, args.c_name, graphs_outdir, n=100)
+    # evaluating_clustering.plot_components_clusters(persona_graph, non_overlapping_clustering, args.w_name, graphs_outdir, n=100)
 
     clustering = PersonaOverlappingClustering(non_overlapping_clustering, persona_id_mapping, 1)
 
