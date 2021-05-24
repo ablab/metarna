@@ -78,7 +78,7 @@ import networkx as nx
 import graphs
 
 
-def CreatePersonaGraph(graph, clustering_fn, personalized_weight, persona_start_id=0):
+def CreatePersonaGraph(graph, clustering_fn, weight_name, persona_start_id=0):
   """The function creates the persona graph.
 
   Args:
@@ -110,7 +110,7 @@ def CreatePersonaGraph(graph, clustering_fn, personalized_weight, persona_start_
     if not egonet.edges:
       partitioning = [[node] for node in egonet.nodes]
     else:
-      partitioning = clustering_fn(egonet)  # Clustering the egonet.
+      partitioning = clustering_fn(egonet, weight=weight_name)  # Clustering the egonet.
     seen_neighbors = set()  # Process each of the egonet's local clusters.
     for p_num, partition in enumerate(partitioning):
       # persona_id = next(persona_id_counter)
@@ -128,7 +128,7 @@ def CreatePersonaGraph(graph, clustering_fn, personalized_weight, persona_start_
       u_p = node_neighbor_persona_id_map[u][v]
       assert u in node_neighbor_persona_id_map[v]
       v_p = node_neighbor_persona_id_map[v][u]
-      personal_edge_data = get_personal_edge_data(graph, u, v, node_neighbor_persona_id_map, personalized_weight)
+      personal_edge_data = get_personal_edge_data(graph, u, v, node_neighbor_persona_id_map, weight_name)
       persona_graph.add_edge(u_p, v_p, **personal_edge_data)
   graphs.write_G_statistics(persona_graph)
   return persona_graph, persona_to_original_mapping

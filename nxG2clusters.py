@@ -42,7 +42,7 @@ def parse_args():
                                  'weakly_connected_components', 'best_partition'])
     parser.add_argument('--weight', '-w', dest='w_name', default='reads_and_db',
                         required=False, type=str,
-                        help='Choose the weight for global clustering',
+                        help='Choose the weight for clustering',
                         choices=['cov_diff', 'reads_and_db', 'geometric_mean', 'harmonic_mean'])
     parser.add_argument('--gfa', '-g', required=True, help='Assembly graph')
     parser.add_argument('--ground_truth', dest='spaligner_ground_truth_tsv', required=True,
