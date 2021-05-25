@@ -25,13 +25,14 @@ def filter_G_by_degree(G, filtered_degree=2):
     return G
 
 def filter_G_by_weight(G, weight, treshold):
-    weights = nx.get_edge_attributes(G, weight)
-    w_list = list(weights.values())
-    k = max(0, int(len(w_list) * treshold) - 1)
-    min_weight = np.partition(w_list, k)[k]
-    G.remove_edges_from([e for e, w in weights.items() if w < min_weight])
-    G.name += '_min_weight_{:.3f}'.format(min_weight)
-    write_G_statistics(G)
+    if treshold:
+        weights = nx.get_edge_attributes(G, weight)
+        w_list = list(weights.values())
+        k = max(0, int(len(w_list) * treshold) - 1)
+        min_weight = np.partition(w_list, k)[k]
+        G.remove_edges_from([e for e, w in weights.items() if w < min_weight])
+        G.name += '_min_weight_{:.3f}'.format(min_weight)
+        write_G_statistics(G)
 
 def get_A(G):
     A = nx.adjacency_matrix(G)

@@ -50,7 +50,7 @@ def parse_args():
     parser.add_argument('-k', type=int, required=True,
                         help='k-mer value used in assembly graph construction')
     parser.add_argument('--outdir', '-o', required=True)
-    parser.add_argument('--filter', default=0., type=float,
+    parser.add_argument('--filter', default=None, type=float,
                         help='Filter this percent of edges based on their weights')
 
     args = parser.parse_args()
