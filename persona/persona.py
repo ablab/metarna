@@ -102,7 +102,7 @@ def CreatePersonaGraph(graph,
   """
   egonets = CreateEgonets(graph)
   node_neighbor_persona_id_map = collections.defaultdict(dict)
-  persona_graph = nx.Graph(name='persona')
+  persona_graph = nx.OrderedGraph(name='persona')
   persona_to_original_mapping = dict()
 
   # Next id to allacate in persona graph.
@@ -159,7 +159,7 @@ def CreateEgonets(graph):
   # This is used to not replicate the work for nodes that have been already
   # analyzed..
   completed_nodes = set()
-  ego_egonet_map = collections.defaultdict(nx.Graph)
+  ego_egonet_map = collections.defaultdict(nx.OrderedGraph)
 
   # To reducing the running time the nodes are processed in increasing order of
   # degree.

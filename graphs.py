@@ -89,7 +89,8 @@ def get_friendships_from_spalignments(G, spaligner_tsv, friendship_rate=1):
     return friendships_dict
 
 def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
-    fG = G.to_undirected()
+    # fG = G.to_undirected()
+    fG = G.copy()
     fG.name = 'friendships'
 
     cov = nx.get_node_attributes(fG, 'cov')
