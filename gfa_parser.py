@@ -87,7 +87,7 @@ def gfa_to_G(gfa, kmer_size):
                 u, v, attr = line_to_rc_edge(line)
                 G.add_edge(u, v, **attr)
                 nx.set_edge_attributes(G, {(u, v): graphs.get_weight_attr(cov[u], cov[v], 0.05, 0.05)})
-    graphs.write_G_statistics(G)
+    # graphs.write_G_statistics(G)
     return G
 
 

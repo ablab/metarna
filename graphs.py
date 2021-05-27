@@ -32,7 +32,7 @@ def filter_G_by_weight(G, weight, treshold):
         min_weight = np.partition(w_list, k)[k]
         G.remove_edges_from([e for e, w in weights.items() if w < min_weight])
         G.name += '_min_weight_{:.3f}'.format(min_weight)
-        write_G_statistics(G)
+        # write_G_statistics(G)
 
 def get_A(G):
     A = nx.adjacency_matrix(G)
@@ -102,7 +102,7 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
                    for edge in weighted_edges}
     fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
 
-    write_G_statistics(fG)
+    # write_G_statistics(fG)
 
     return fG
 

@@ -130,7 +130,7 @@ def CreatePersonaGraph(graph, clustering_fn, weight_name, persona_start_id=0):
       v_p = node_neighbor_persona_id_map[v][u]
       personal_edge_data = get_personal_edge_data(graph, u, v, node_neighbor_persona_id_map, weight_name)
       persona_graph.add_edge(u_p, v_p, **personal_edge_data)
-  graphs.write_G_statistics(persona_graph)
+  # graphs.write_G_statistics(persona_graph)
   return persona_graph, persona_to_original_mapping
 
 
