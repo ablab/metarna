@@ -51,12 +51,12 @@ def get_X(nodes, out_tsv):
 
 def get_weight_attr(cov_u, cov_v, reads_weight, db_weight):
     cov_diff = 1.0 / (abs(cov_u - cov_v) + sys.float_info.epsilon)
-    weight_attr = {'cov_diff': cov_diff,
-                   'reads_and_db': reads_weight + db_weight,
-                   'geometric_mean': gmean([cov_diff, reads_weight, db_weight]),
-                   'harmonic_mean': hmean([cov_diff,
-                                           reads_weight + sys.float_info.epsilon,
-                                           db_weight + sys.float_info.epsilon])}
+    weight_attr = {
+        'cov_diff': cov_diff,
+        'reads_and_db': reads_weight + db_weight,
+        'geometric_mean': gmean([cov_diff, reads_weight, db_weight]),
+        'harmonic_mean': hmean([cov_diff, reads_weight + sys.float_info.epsilon, db_weight + sys.float_info.epsilon])
+    }
     return weight_attr
 
 def write_G_statistics(G):
@@ -93,13 +93,11 @@ def G_to_friendships_graph(G, spaligner_long_reads_tsv, spaligner_db_tsv):
     fG = G
     fG.name = 'friendships'
 
-    cov = nx.get_node_attributes(fG, 'cov')
+    # cov = nx.get_node_attributes(fG, 'cov')
     reads_weights = get_friendships_from_spalignments(fG, spaligner_long_reads_tsv)
     db_weights = get_friendships_from_spalignments(fG, spaligner_db_tsv, 10)
     weighted_edges = set(reads_weights.keys()).union(set(db_weights.keys()))
-    weight_attr = {edge: get_weight_attr(cov[edge[0]], cov[edge[1]],
-                                         reads_weights[edge], db_weights[edge])
-                   for edge in weighted_edges}
+    weight_attr = {edge: {'reads_and_db': reads_weights[edge] + db_weights[edge]} for edge in weighted_edges}
     fG.add_edges_from((edge[0], edge[1], w_dict) for edge, w_dict in weight_attr.items())
 
     # write_G_statistics(fG)
