@@ -30,8 +30,9 @@ def spaligner_to_df_not_ss(tsv, G):
     tsv_df_rc = tsv_df.copy()
     tsv_df_rc['sequence name'] = tsv_df['sequence name'].astype(str) + '_rc'
 
-    start_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[0]
-    end_node = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',').str[-1]
+    path = tsv_df['path of the alignment'].str.replace(';', ',').str.split(',')
+    start_node = path.str[0]
+    end_node = path.str[-1]
     s_pos = tsv_df['start position of alignment on sequence'].astype(str).str.split(',').str[0].astype(int)
     e_pos = tsv_df['end position of alignment on sequence'].astype(str).str.split(',').str[-1].astype(int)
     s_len = start_node.apply(lambda x: G.nodes[x]['len']).astype(int)
