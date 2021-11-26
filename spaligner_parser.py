@@ -41,9 +41,9 @@ def spaligner_to_df_not_ss(tsv, G):
     tsv_df_rc['end position of alignment on the last edge of the Path'] = s_len - s_pos - G.graph['k']
 
     tsv_df_rc['path of the alignment'] = \
-        tsv_df['path of the alignment'].apply(rc_smth_of_the_alignment)
+        tsv_df['path of the alignment'].astype(str).apply(rc_smth_of_the_alignment)
     tsv_df_rc['lengths of the alignment on each edge of the Path respectively'] = \
-        tsv_df['lengths of the alignment on each edge of the Path respectively'].apply(rc_smth_of_the_alignment)
+        tsv_df['lengths of the alignment on each edge of the Path respectively'].astype(str).apply(rc_smth_of_the_alignment)
     tsv_df_rc['sequence of alignment Path'] = \
         tsv_df['sequence of alignment Path'].map(lambda s: Seq(s).reverse_complement())
     return pd.concat([tsv_df, tsv_df_rc])
