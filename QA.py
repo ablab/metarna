@@ -32,14 +32,16 @@ def get_annotated_proteins(align_path):
 
 
 def run_prodigal(assembly_path, outdir):
+    initial_dir = os.path.abspath(os.getcwd())
+    subprocess.call('cd {}'.format(outdir), shell=True)
     name = os.path.basename(assembly_path).split('.')[0]
-    proteins_path = os.path.join(outdir, '{}.proteins.faa'.format(name))
-    genes_path = os.path.join(outdir, '{}.genes.faa'.format(name))
+    proteins = '{}.proteins.faa'.format(name)
     command = 'prodigal -i {assembly} -o {genes} -a {proteins} -p meta'.\
-        format(assembly=assembly_path, genes=genes_path, proteins=proteins_path)
+        format(assembly=assembly_path, genes='{}.genes.faa'.format(name), proteins=proteins)
     print(command)
     subprocess.call(command, shell=True)
-    return proteins_path
+    subprocess.call('cd {}'.format(initial_dir), shell=True)
+    return os.path.join(outdir, proteins)
 
 
 def run_mmseqs(proteins_path, outdir, min_seq_id=0.9):
