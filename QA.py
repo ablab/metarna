@@ -59,6 +59,7 @@ def run_interproscan(rep_seq_path, outdir):
     global threads
 
     name = os.path.basename(rep_seq_path).split('_')[0]
+
     ipr_dir = os.path.join(outdir, '{}_rep_seq.clear'.format(name))
     if not os.path.exists(ipr_dir):
         os.makedirs(ipr_dir)
@@ -70,7 +71,7 @@ def run_interproscan(rep_seq_path, outdir):
     subprocess.call(command, shell=True)
 
     # Split fasta into smaller chunks to speed up
-    command = 'pyfasta split - n 50 {}'.format(clear_rep_seq)
+    command = 'pyfasta split -n 50 {}'.format(clear_rep_seq)
     print(command)
     subprocess.call(command, shell=True)
 
