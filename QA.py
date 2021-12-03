@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Usage:
+# ./QA.py path/to/transcripts/ path/to/output/directory
+
 import os
 import subprocess
 import sys
@@ -144,4 +147,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
