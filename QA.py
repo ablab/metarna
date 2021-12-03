@@ -126,6 +126,9 @@ def main():
     assembly_path = sys.argv[1]
     outdir = sys.argv[2]
 
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
     proteins_path = run_prodigal(assembly_path, outdir)
 
     rep_seq_path = run_mmseqs(proteins_path, outdir)
