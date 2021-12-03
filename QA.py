@@ -33,14 +33,14 @@ def get_annotated_proteins(align_path):
 
 def run_prodigal(assembly_path, outdir):
     initial_dir = os.path.abspath(os.getcwd())
-    subprocess.call('cd {}'.format(outdir), shell=True)
+    os.chdir(outdir)
     name = os.path.basename(assembly_path).split('.')[0]
     proteins = '{}.proteins.faa'.format(name)
     command = 'prodigal -i {assembly} -o {genes} -a {proteins} -p meta'.\
         format(assembly=assembly_path, genes='{}.genes.faa'.format(name), proteins=proteins)
     print(command)
     subprocess.call(command, shell=True)
-    subprocess.call('cd {}'.format(initial_dir), shell=True)
+    os.chdir(initial_dir)
     return os.path.join(outdir, proteins)
 
 
@@ -60,7 +60,8 @@ def run_interproscan(rep_seq_path, outdir):
 
     name = os.path.basename(rep_seq_path).split('_')[0]
     ipr_dir = os.path.join(outdir, '{}_rep_seq.clear'.format(name))
-    subprocess.call('mkdir {}'.format(ipr_dir), shell=True)
+    if not os.path.exists(ipr_dir):
+        os.makedirs(ipr_dir)
 
     # Remove the * at the end of the sequences
     clear_rep_seq = os.path.join(ipr_dir, '{}_rep_seq.clear.fasta'.format(name))
