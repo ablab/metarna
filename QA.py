@@ -84,7 +84,9 @@ def run_interproscan(rep_seq_path, outdir):
         filename = '{name}_rep_seq.clear.{num}'.format(name=name, num=num)
         proteins_path = '{}.fasta'.format(filename)
         # Run IPR for each chunk separately
-        command = 'interproscan.sh -i {proteins} -b {base} -cpu {threads} -dp'.format(proteins=os.path.join(ipr_dir, proteins_path), base=os.path.join(ipr_dir, filename), threads=threads)
+        command = 'interproscan.sh -i {proteins} -b {base} -cpu {threads} -dp -dra -appl Hamap,Pfam'\
+            .format(proteins=os.path.join(ipr_dir, proteins_path),
+                    base=os.path.join(ipr_dir, filename), threads=threads)
         print(command)
         subprocess.call(command, shell=True)
         cat_cmd += ' {}.tsv'.format(os.path.join(outdir, proteins_path))
@@ -102,7 +104,7 @@ def run_diamond(rep_seq_path, mgy_db, outdir):
     name = os.path.basename(rep_seq_path).split('_')[0]
     diamond_path = os.path.join(outdir, '{}.matches.m8'.format(name))
     command = 'diamond blastp -d {mgy} -q {rep_seq} -o {diamond} --query-cover 50 --id 95 --subject-cover 90 ' \
-              '--threads {threads} -dra -appl Hamap,Pfam'.\
+              '--threads {threads}'.\
         format(mgy=mgy_db, rep_seq=rep_seq_path, diamond=diamond_path, name=name, threads=threads)
     print(command)
     subprocess.call(command, shell=True)
