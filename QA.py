@@ -89,7 +89,7 @@ def run_interproscan(rep_seq_path, outdir):
                     base=os.path.join(ipr_dir, filename), threads=threads)
         print(command)
         subprocess.call(command, shell=True)
-        cat_cmd += ' {}.tsv'.format(os.path.join(outdir, proteins_path))
+        cat_cmd += ' {}.tsv'.format(os.path.join(ipr_dir, filename))
     ipr_path = os.path.join(ipr_dir, '{}_rep_seq.clear.tsv'.format(name))
     # Concatenate all IPR tsv-s
     cat_cmd += ' > ' + ipr_path
