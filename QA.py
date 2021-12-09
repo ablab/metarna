@@ -132,7 +132,7 @@ def get_counts(rep_seq_path, diamond_path, ipr_path, outdir):
 def main():
     global mgy_db
 
-    assembly_path = sys.argv[1]
+    assembly_path = os.path.abspath(sys.argv[1])
     outdir = sys.argv[2]
 
     if not os.path.exists(outdir):
