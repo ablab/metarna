@@ -111,7 +111,8 @@ def run_diamond(rep_seq_path, mgy_db, outdir):
     return diamond_path
 
 
-def get_counts(rep_seq_path, diamond_path, ipr_path):
+def get_counts(rep_seq_path, diamond_path, ipr_path, outdir):
+    results_path = os.path.join(outdir, 'results.txt')
     annotated_mgy = get_annotated_proteins(diamond_path)
     annotated_ipr = get_annotated_proteins(ipr_path)
     all_clusters = get_fasta_ids(rep_seq_path)
@@ -121,10 +122,11 @@ def get_counts(rep_seq_path, diamond_path, ipr_path):
     mgy_only = annotated_mgy - both_proteins
     ipr_only = annotated_ipr - both_proteins
     sum = len(none_proteins) + len(mgy_only) + len(ipr_only) + len(both_proteins)
-    print('MGnify: {}\nIPR: {}'.format(len(annotated_mgy), len(annotated_ipr)))
-    print('None: {}\nMGnify only: {}\nIPR only: {}\nboth: {}\nsummary: {}'
-          .format(len(none_proteins), len(mgy_only), len(ipr_only), len(both_proteins), sum))
-    print('All clusters: {}\n'.format(len(all_clusters)))
+    with open(results_path, 'w') as fout:
+        fout.write('MGnify: {}\nIPR: {}\n'.format(len(annotated_mgy), len(annotated_ipr)))
+        fout.write('None: {}\nMGnify only: {}\nIPR only: {}\nboth: {}\nsummary: {}\n'
+                   .format(len(none_proteins), len(mgy_only), len(ipr_only), len(both_proteins), sum))
+        fout.write('All clusters: {}\n'.format(len(all_clusters)))
 
 
 def main():
@@ -144,7 +146,7 @@ def main():
 
     diamond_path = run_diamond(rep_seq_path, mgy_db, outdir)
 
-    get_counts(rep_seq_path, diamond_path, ipr_path)
+    get_counts(rep_seq_path, diamond_path, ipr_path, outdir)
 
 
 if __name__ == '__main__':
