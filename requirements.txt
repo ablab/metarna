@@ -3,7 +3,7 @@ absl-py==0.6.1
 networkx==2.2
 boltons==19.1.0
 gensim==0.13.2
-scipy==0.15.1
+scipy==1.10.0
 
 # clear PYTHONPATH = otherwise 2.7 is used
 #     export PYTHONPATH=
